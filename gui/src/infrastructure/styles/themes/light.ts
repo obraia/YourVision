@@ -1,0 +1,48 @@
+import { DefaultTheme } from 'styled-components';
+
+export default {
+  title: 'light',
+
+  colors: {
+    primary: '#E95420',
+    textPrimary: '#fff',
+    secondary: '#f1f3f4',
+    textSecondary: '#696969',
+    background: '#D9D9D9',
+    textBackground: '#696969',
+    error: '#D74A4A',
+    textError: '#FFFFFF',
+    warning: '#ffc107',
+    textWarning: '#252525',
+    info: '#00c0ef',
+    textInfo: '#fff',
+    success: '#00a65a',
+    textSuccess: '#fff',
+    color1: '#ffffff',
+    color2: '#87ceeb',
+    color3: '#ffd700',
+    color4: '#adff2f',
+    color5: '#00ffff',
+    color6: '#f08080',
+  },
+
+  metrics: {
+    padding: '8px',
+    margin: '8px',
+    gap: '8px',
+    radius: '8px',
+    inner_radius: '6px',
+    header_height: '64px',
+    menu_width: '255px',
+    mobile_small: '320px',
+    mobile_medium: '375px',
+    mobile_large: '425px',
+    tablet_small: '768px',
+    tablet_medium: '1024px',
+    tablet_large: '1280px',
+    desktop_small: '1024px',
+    desktop_medium: '1280px',
+    desktop_large: '1440px',
+    desktop_xlarge: '1680px',
+  },
+} as DefaultTheme;

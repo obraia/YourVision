@@ -1,0 +1,15 @@
+.DS_Store
+._.DS_Store
+
+venv/
+__pycache__/
+
+# front-end
+gui/node_modules/
+
+# back-end
+api/static/embeddings/*
+api/static/images/*
+
+api/weights/sam/*
+api/weights/sd/difussers/*
