@@ -1,8 +1,6 @@
 <div align="center">
-  <img src="docs/banner.png" alt="banner" width="60%" />
+  <img src="docs/banner.png" alt="banner" width="75%" />
 </div>
-
-<br>
 
 # <b>YourVision</b>:  AI-powered image editor
 
@@ -10,16 +8,12 @@
   <img src="docs/your-vision-mask.gif" alt="preview" width="80%" />
 </div>
 
-<br>
-
-## Application features
+# Application features
 
 - Smart Mask with Segment Everything
 - Configurable editing tools
 - Optimized for desktop and mobile
 - Dark theme support
-
-<br>
 
 # Instalation
 
@@ -70,8 +64,6 @@ First, you will need python v3.10.6 and nodejs v18.16.0 with yarn.
 
         $ yarn start
 
-<br>
-
 # Features to be implemented in the future
 
 - [ ] Install script
@@ -83,8 +75,6 @@ First, you will need python v3.10.6 and nodejs v18.16.0 with yarn.
 - [ ] Support for predefined generation filters
 - [ ] Create layer system
 - [ ] Plugins support
-
-<br>
 
 # Credits
 
