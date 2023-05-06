@@ -87,8 +87,11 @@ const stock = createSlice({
     setHeight(state, action: PayloadAction<number>) {
       state.properties.height = action.payload;
     },
+    setSeed(state, action: PayloadAction<number>) {
+      state.properties.seed = action.payload;
+    },
     generateRandomSeed(state) {
-      state.properties.seed = Math.floor(Math.random() * 100000000);
+      state.properties.seed = Math.floor(1000000000 + Math.random() * 9000000000);
     }
   },
 });

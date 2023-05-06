@@ -3,7 +3,6 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../../../../infrastructure/redux/store';
 import { Uploader } from './uploader';
 import { Carousel } from './carousel';
-import { Progressbar } from './progressbar';
 import { Container } from './styles';
 
 interface Props {
@@ -16,7 +15,6 @@ const Workspace = (props: Props) => {
 
   return (
     <Container>
-      <Progressbar />
       { image ? <Editor ref={props.editorRef} /> : <Uploader onUpload={props.onUpload} /> }
       <Carousel />
     </Container>

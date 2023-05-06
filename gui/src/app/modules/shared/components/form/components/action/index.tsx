@@ -4,7 +4,7 @@ import { Container } from './styles';
 
 interface Props {
   width?: string;
-  icon?: IconType;
+  icon: IconType;
   properties: ButtonHTMLAttributes<HTMLInputElement>;
 }
 
@@ -17,7 +17,7 @@ const Action = (props: Props) => {
 
   return (
     <Container {...props.properties} onClick={handleClick} $width={props.width}>
-      {props.icon && <props.icon size={20} />}
+      <props.icon size={20} />
     </Container>
   );
 };

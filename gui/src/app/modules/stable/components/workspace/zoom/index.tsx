@@ -35,11 +35,21 @@ export const Zoom = React.forwardRef((props: Props, ref: any) => {
     },
     onDrag: () => {
       setEnabled(true);
-      contentRef.current!.style.cursor = "grabbing";
+      
+      const { current: content } = contentRef;
+      
+      if(content) {
+        content.style.cursor = "grabbing";
+      }
     },
     onDragEnd: () => {
       setTimeout(() => { setEnabled(false) }, animationDuration);
-      contentRef.current!.style.cursor = "grab";
+      
+      const { current: content } = contentRef;
+
+      if(content) {
+        content.style.cursor = "grab";
+      }
     }
   }, {
     target: contentRef,

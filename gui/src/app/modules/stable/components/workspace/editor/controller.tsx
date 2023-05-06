@@ -294,7 +294,6 @@ function useController(ref: ForwardedRef<EditorRef>) {
         context.beginPath()
         context.moveTo(x, y)
         context.lineTo(x, y)
-        context.stroke()
         setIsDrawing(true)
 
         nativeEvent.preventDefault()
@@ -353,7 +352,7 @@ function useController(ref: ForwardedRef<EditorRef>) {
   }, [])
 
   const onZoomChange = (scale: number) => {
-    setZoomScale(scale)
+    setZoomScale(scale);
   }
 
   /**

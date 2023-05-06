@@ -1,14 +1,14 @@
 import { MouseEvent, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { IoReload } from 'react-icons/io5';
+import { AiOutlineLock } from 'react-icons/ai';
 import { TbArrowsRandom } from 'react-icons/tb';
 import { RootState } from '../../../../../infrastructure/redux/store';
 import { Properties } from '../../../stable/pages/inpainting/controller';
 import { propertiesActions } from '../../../../../infrastructure/redux/reducers/properties';
 import { Field, Form, FormRef } from '../../../shared/components/form';
-import { Button } from './button'
-import { Container, Gutter, PropertiesWrapper } from './styles'
 import { useSdService } from '../../../../../infrastructure/services/sd/sd.service';
+import { Button, ButtonText, Container, Gutter, PropertiesWrapper } from './styles';
 
 interface Props {
   disableSubmit?: boolean;
@@ -17,7 +17,7 @@ interface Props {
 }
 
 const Properties = (props: Props) => {
-  const { image, models, samplers, properties, loading } = useSelector((state: RootState) => state.properties);
+  const { image, models, samplers, properties, loading, progress } = useSelector((state: RootState) => state.properties);
   const formRef = useRef<FormRef<Properties>>(null);
   const dispatch = useDispatch();
   const sdService = useSdService();
@@ -66,7 +66,7 @@ const Properties = (props: Props) => {
       name: 'model',
       label: 'Model',
       type: 'select',
-      width: 'calc(100% - 35px)',
+      width: 'calc(100% - 45px)',
       required: true,
       selectOptions: {
         defaultValue: properties.model,
@@ -177,10 +177,18 @@ const Properties = (props: Props) => {
       name: 'seed',
       label: 'Seed',
       type: 'number',
-      width: `calc(100% - 35px)`,
+      width: `calc(100% - 90px)`,
       required: true,
       numberOptions: {
         defaultValue: properties.seed,
+      }
+    },
+    {
+      type: 'action',
+      width: `35px`,
+      actionOptions: {
+        icon: AiOutlineLock,
+        onClick() { dispatch(propertiesActions.setSeed(-1)) }
       }
     },
     {
@@ -231,8 +239,8 @@ const Properties = (props: Props) => {
         <Form fields={fields} ref={formRef} onChange={values => dispatch(propertiesActions.setProperties(values))}/>
       </PropertiesWrapper>
 
-      <Button onClick={handleSubmit} disabled={loading || !image}>
-        GENERATE
+      <Button onClick={handleSubmit} disabled={loading || !image} $progress={progress.current / progress.total * 100}>
+        <ButtonText>GENERATE</ButtonText>
       </Button>
     </Container>
   )

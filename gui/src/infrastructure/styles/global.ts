@@ -72,6 +72,17 @@ const GlobalStyle = createGlobalStyle`
       display: none;
     }
   }
+
+  /* Color of text selection */
+  ::-moz-selection { /* Code for Firefox */
+    color: ${({ theme }) => theme.colors.textPrimary};
+    background: ${({ theme }) => theme.colors.primary};
+  }
+
+  ::selection {
+    color: ${({ theme }) => theme.colors.textPrimary};
+    background: ${({ theme }) => theme.colors.primary};
+  }
 `
 
 export { GlobalStyle }

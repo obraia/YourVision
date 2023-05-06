@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import { lighten, transparentize } from 'polished';
+import { darken, desaturate, lighten, transparentize } from 'polished';
 import { Scroll } from '../../../shared/components/layout/scroll';
 
 export const Container = styled.aside`
@@ -43,4 +43,46 @@ export const Gutter = styled.div`
   &:hover {
     background-color: ${({ theme }) => transparentize(0.8, theme.colors.primary)};
   }
+`;
+
+export const Button = styled.button<{ $progress: number }>`
+  min-height: 45px;
+  max-height: 45px;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: auto 10px 10px 10px;
+  padding: 0 10px;
+  border-radius: ${({ theme }) => theme.metrics.radius};
+  font-size: 14px;
+  font-weight: bold;
+  background-color: ${({ theme }) => theme.colors.primary};
+  color: ${({ theme }) => theme.colors.textPrimary};
+  overflow: hidden;
+  transition: 0.2s;
+
+  &:hover {
+    background-color: ${({ theme }) => darken(0.1, theme.colors.primary)};
+  }
+
+  &:disabled {
+    pointer-events: none;
+    background-color: ${({ theme }) => desaturate(1, theme.colors.primary)};
+    cursor: not-allowed;
+  }
+
+  &::before {
+    content: '';
+    width: ${({ $progress }) => ($progress || 0)}%;
+    height: 100%;
+    position: absolute;
+    left: 0;
+    background-color: ${({ theme }) => theme.colors.primary};
+    z-index: 0;
+  }
+`;
+
+export const ButtonText = styled.span`
+  z-index: 1;
 `;

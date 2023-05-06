@@ -9,6 +9,7 @@ export const Container = styled.button.attrs({
   display: flex;
   justify-content: center;
   align-items: center;
+  margin-inline: 5px;
   border: 1px solid ${({ theme }) => transparentize(0.8, theme.colors.textBackground)};
   border-radius: ${({ theme }) => theme.metrics.radius};
   background-color: ${({ theme }) => lighten(0.12, theme.colors.background)};

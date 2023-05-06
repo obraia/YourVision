@@ -1,8 +1,7 @@
 import { ForwardedRef, useImperativeHandle, useRef } from 'react';
-import { mask, unMask } from 'remask'
-import { NumberInput, Select, Separator, TextArea, TextInput } from './components'
+import { unMask } from 'remask'
+import { NumberInput, Select, Separator, TextArea, TextInput, Action } from './components'
 import { Field, FormRef, Props } from '.';
-import { Action } from './components/action';
 
 function useFormController<T>(props: Props<T>, ref: ForwardedRef<FormRef<T>>) {
   const formRef = useRef<HTMLFormElement>(null);
