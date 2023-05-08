@@ -20,6 +20,6 @@ class FilesystemUtils:
   def rmdir(path):
       os.rmdir(path)
 
-  def random_name(ext):
-      timestamp = int(round(datetime.now().timestamp() * 1000))
-      return f'{timestamp}.{ext}'
+  def read(path):
+      with open(path, 'r') as f:
+          return f.read()

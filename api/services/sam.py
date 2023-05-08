@@ -1,3 +1,4 @@
+import gc
 import os
 import torch
 from segment_anything import SamPredictor, sam_model_registry
@@ -17,4 +18,13 @@ class SamService:
       predictor = SamService.load_model("sam_vit_l_0b3195.pth", "vit_l")
       predictor.set_image(image)
       embedding = predictor.get_image_embedding().cpu().numpy()
+
+      # optimizer after inference
+      del predictor
+      gc.collect()
+      
+      if torch.cuda.is_available():
+          torch.cuda.empty_cache()
+          torch.cuda.ipc_collect()
+
       return embedding

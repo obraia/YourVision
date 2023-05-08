@@ -1,7 +1,6 @@
 import os
+import random
 import torch
-import base64
-from io import BytesIO
 from diffusers import pipelines, schedulers
 from utils.filesystem import FilesystemUtils
 from utils.image import ImageUtils
@@ -63,25 +62,32 @@ class SdService:
 
       return pipe
 
-  def latents_callback(step, latents, pipe, emit_progress):
-    if step % 5 == 0:
-      latents = 1 / 0.18215 * latents
-      image = pipe.vae.decode(latents).sample[0]
-      image = (image / 2 + 0.5).clamp(0, 1)
-      image = image.cpu().permute(1, 2, 0).numpy()
-      image = pipe.numpy_to_pil(image)[0]
-      buffered = BytesIO()
-      image.save(buffered, format="JPEG")
-      image = "data:image/jpeg;base64," + base64.b64encode(buffered.getvalue()).decode("utf-8")
-      emit_progress({ "image": image, "step": step })
-    else:
-      emit_progress({ "step": step })
+  def load_generator(seed):
+      if seed == -1:
+          seed = random.randint(-9999999999, 9999999999)
+      return torch.Generator(SdService.device).manual_seed(seed)
 
-  def inpaint(properties, image, mask, emit_progress):
+  def latents_callback(step, latents, pipe, emit_progress):
+      emit_progress({ "step": step })
+    # if step % 5 == 0:
+    #   latents = 1 / 0.18215 * latents
+    #   image = pipe.vae.decode(latents).sample[0]
+    #   image = (image / 2 + 0.5).clamp(0, 1)
+    #   image = image.cpu().permute(1, 2, 0).numpy()
+    #   image = pipe.numpy_to_pil(image)[0]
+    #   buffered = BytesIO()
+    #   image.save(buffered, format="JPEG")
+    #   image = "data:image/jpeg;base64," + base64.b64encode(buffered.getvalue()).decode("utf-8")
+    #   emit_progress({ "image": image, "step": step })
+    # else:
+    #   emit_progress({ "step": step })
+
+  def inpaint(image, mask, properties, emit_progress):
       pipe = SdService.load_model(properties.model, properties.sampler)
       width, height = ImageUtils.proportion(image, properties.width, properties.height)
       image = ImageUtils.resize(image, properties.width, properties.height)
       mask = ImageUtils.resize(mask, properties.width, properties.height)
+      generator = SdService.load_generator(properties.seed)
       outputs = []
 
       for i in range(properties.images):
@@ -95,6 +101,7 @@ class SdService:
             num_images_per_prompt=1,
             width=properties.width,
             height=properties.height,
+            generator=generator,
             callback_steps=1,
             callback=lambda s, _, l: SdService.latents_callback(((s + 1) + (i * properties.steps)), l, pipe, emit_progress),
             eta=0.0,
@@ -106,7 +113,9 @@ class SdService:
         output = ImageUtils.mask(image, output, mask)
         outputs.append(output)
 
-      torch.cuda.empty_cache()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+            torch.cuda.ipc_collect()
 
       return outputs
 

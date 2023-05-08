@@ -13,3 +13,5 @@ api/static/images/*
 
 api/weights/sam/*
 api/weights/sd/difussers/*
+
+api/infra/database/data.db

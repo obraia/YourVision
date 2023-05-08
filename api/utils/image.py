@@ -1,6 +1,13 @@
+import base64
+from io import BytesIO
 from PIL import Image, ImageOps
 
 class ImageUtils:
+  def from_base64(image: str):
+      if image.startswith('data:image'):
+          image = image.split(',')[1]
+      return Image.open(BytesIO(base64.b64decode(image)))
+
   def crop(image: Image, width: int, height: int):
       w, h = image.size
       x = int((w - width) / 2)
