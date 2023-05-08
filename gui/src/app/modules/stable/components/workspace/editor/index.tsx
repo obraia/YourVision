@@ -7,8 +7,8 @@ import { RootState } from '../../../../../../infrastructure/redux/store';
 import { BrushIndicator, Canvas, Container, CursorWrapper, Image } from './styles';
 
 export interface EditorRef {
-  getImage: () => Promise<File> | undefined;
-  getMask: () => Promise<File> | undefined;
+  getImage: () => Promise<string> | undefined;
+  getMask: () => Promise<string> | undefined;
   saveImage: () => void;
   saveMask: () => void;
   clear: () => void;

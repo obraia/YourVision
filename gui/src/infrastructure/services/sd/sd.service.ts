@@ -1,15 +1,34 @@
 import { useAxios } from '../../../app/modules/shared/hooks/useAxios'
 
+interface InpaintRequest {
+  image: string;
+  mask: string;
+  properties: {
+    model: string;
+    positive: string;
+    negative: string;
+    images: number;
+    steps: number;
+    cfg: number;
+    width: number;
+    height: number;
+    sampler: string;
+    seed: number;
+  }
+}
+
+interface InpaintResponse {
+  id: number;
+  image: string;
+  embedding: string;
+  properties_id: number;
+}
+
 const useSdService = () => {
   const axios = useAxios('/sd');
 
-  const inpaint = async (formData: FormData) => {
-    const { data } = await axios.post<{
-      image: string,
-      mask: string,
-      outputs: string[],
-    }>('/inpaint', formData)
-    
+  const inpaint = async (body: InpaintRequest) => {
+    const { data } = await axios.post<InpaintResponse[]>('/inpaint', body)
     return data;
   }
 

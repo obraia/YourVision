@@ -43,7 +43,7 @@ function useController(ref: ForwardedRef<EditorRef>) {
         const { current: image } = imageRef;
 
         if(image) {
-          return imageToFile(image.src, 'image.png', 'image/png');
+          return imageToBase64(image.src);
         }
       },
       getMask() {
@@ -69,17 +69,17 @@ function useController(ref: ForwardedRef<EditorRef>) {
     
           const image = canvas.toDataURL('image/png');
 
-          return imageToFile(image, 'mask.png', 'image/png');
+          return imageToBase64(image);
         }
       },
       saveImage() {
         const image = this.getImage();
 
         if(image) {
-          image.then((file) => {
+          image.then((base64) => {
             const link = document.createElement('a');
             link.setAttribute('download', 'image.png');
-            link.setAttribute('href', URL.createObjectURL(file));
+            link.setAttribute('href', base64);
             link.click();
           });
         }
@@ -88,10 +88,10 @@ function useController(ref: ForwardedRef<EditorRef>) {
         const mask = this.getMask();
 
         if(mask) {
-          mask.then((file) => {
+          mask.then((base64) => {
             const link = document.createElement('a');
             link.setAttribute('download', 'mask.png');
-            link.setAttribute('href', URL.createObjectURL(file));
+            link.setAttribute('href', base64);
             link.click();
           });
         }
@@ -108,9 +108,7 @@ function useController(ref: ForwardedRef<EditorRef>) {
         }
       },
       delete() {
-        dispatch(propertiesActions.setImage(''));
-        dispatch(propertiesActions.setResults([]));
-        dispatch(propertiesActions.setSamEmbedding(''));
+        dispatch(propertiesActions.deleteCurrent());
         dispatch(propertiesActions.setProgress(0));
       },
     };
@@ -121,6 +119,20 @@ function useController(ref: ForwardedRef<EditorRef>) {
       fetch(image)
         .then(res => res.arrayBuffer())
         .then(buf => new File([buf], fileName, { type: mimeType }))
+    );
+  }
+
+  const imageToBase64 = (image: string): Promise<string> => {
+    return (
+      fetch(image)
+        .then(res => res.blob())
+        .then(blob => new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        })
+      )
     );
   }
 
@@ -383,7 +395,7 @@ function useController(ref: ForwardedRef<EditorRef>) {
    */
   useEffect(() => {
     if (embedding) {
-      loadNpyTensor(embedding);
+      loadNpyTensor(`${process.env.REACT_APP_API_URL}/static/embeddings/${embedding}`);
     }
   }, [embedding])
 

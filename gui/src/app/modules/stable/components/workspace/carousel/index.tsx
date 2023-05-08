@@ -1,36 +1,57 @@
-import { useState } from 'react';
 import { Container, ImageContainer } from './styles';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../../../../../infrastructure/redux/store';
-import { propertiesActions } from '../../../../../../infrastructure/redux/reducers/properties';
+import { ImageResult, propertiesActions } from '../../../../../../infrastructure/redux/reducers/properties';
+import { useEffect, useRef } from 'react';
 
 export const Carousel = () => {
-  const { results } = useSelector((state: RootState) => state.properties);
-  const [current, setCurrent] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { results, current } = useSelector((state: RootState) => state.properties);
   const dispatch = useDispatch();
 
-  const handleSelect = (index: number) => {
-    setCurrent(index);
-    dispatch(propertiesActions.setImage(results[index]));
+  const handleSelect = (result: ImageResult) => {
+    dispatch(propertiesActions.setCurrent(result.id));
+    dispatch(propertiesActions.setImage(result.image));
+    dispatch(propertiesActions.setSamEmbedding(result.embedding));
   }
 
   const renderImages = () => {
-    return results.map((image, index) => {
+    return results.map((result) => {
+      const image = result.image.startsWith('data') ? result.image : `${process.env.REACT_APP_API_URL}/static/images/${result.image}`;
+
       return (
         <ImageContainer 
-          key={index} 
-          selected={index === current}
-          onClick={() => handleSelect(index)}>
-          <img src={image} alt={index.toString()} />
+          key={result.id} 
+          selected={result.id === current}
+          onClick={() => handleSelect(result)}>
+          <img src={image} alt={result.id.toString()} />
         </ImageContainer>
       )
     })
   }
 
+  useEffect(() => {
+    const { current: container } = containerRef;
+
+    if(!container) return;
+
+    const inverseScroll = (event: WheelEvent) => {
+      event.preventDefault();
+      container.scrollLeft += event.deltaY > 0 ? 50 : -50;
+    }
+
+    container.addEventListener('wheel', inverseScroll);
+
+    return () => {
+      container.removeEventListener('wheel', inverseScroll);
+    }
+  }, [])
+    
+
   if(!results.length) return null;
 
   return (
-    <Container>
+    <Container ref={containerRef}>
       {renderImages()}
     </Container>
   )

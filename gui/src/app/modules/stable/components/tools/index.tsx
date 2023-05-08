@@ -8,6 +8,7 @@ import { MdOpacity } from 'react-icons/md';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../../../../infrastructure/redux/store';
 import { EditorRef } from '../../../stable/components/workspace/editor';
+import { propertiesActions } from '../../../../../infrastructure/redux/reducers/properties';
 
 interface Props {
   editorRef: RefObject<EditorRef>;
@@ -155,9 +156,30 @@ const Tools = (props: Props) => {
     {
       name: 'Delete',
       icon: <FaTrash />,
-      onClick() {
-        props.editorRef.current?.delete();
-      },
+      properties: [
+        {
+          label: 'Delete current',
+          type: 'button',
+          buttonOptions: {
+            color: 'textPrimary',
+            backgroundColor: 'primary',
+            onClick() {
+              dispatch(propertiesActions.deleteCurrent());
+            },
+          }
+        },
+        {
+          label: 'Delete all',
+          type: 'button',
+          buttonOptions: {
+            color: 'error',
+            backgroundColor: 'textError',
+            onClick() {
+              dispatch(propertiesActions.deleteAll());
+            },
+          }
+        },
+      ],
     },
   ];
 

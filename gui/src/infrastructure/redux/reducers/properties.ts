@@ -1,15 +1,18 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import { Properties } from '../../../app/modules/stable/pages/inpainting/controller';
 
-export interface PropertiesState {
+export interface ImageResult {
+  id: number;
   image: string;
   embedding: string;
-  results: { 
-    image: string,
-    mask: string,
-    embedding: string,
-    properties: Properties,
-  }[];
+  properties_id: number;
+}
+
+export interface PropertiesState {
+  current: number;
+  image: string;
+  embedding: string;
+  results: ImageResult[];
   loading: boolean;
   progress: { current: number, total: number };
   models: string[];
@@ -20,9 +23,10 @@ export interface PropertiesState {
 const stock = createSlice({
   name: 'properties',
   initialState: {
+    current: 0,
     image: '',
     embedding: '',
-    results: new Array<string>(),
+    results: new Array<ImageResult>(),
     loading: false,
     progress: { current: 0, total: 0 },
     models: new Array<string>(),
@@ -39,18 +43,55 @@ const stock = createSlice({
       positive: '',
       negative: '',
     }
-  },
+  } as PropertiesState,
   reducers: {
+    setCurrent(state, action: PayloadAction<number>) {
+      state.current = action.payload;
+    },
+    deleteCurrent(state) {
+      const index = state.results.findIndex((result) => result.id === state.current);
+
+      if(index === -1) return;
+
+      state.results.splice(index, 1);
+
+      const result = state.results[index] || state.results[state.results.length - 1];
+
+      if(result) {
+        state.current = result.id;
+        state.embedding = result.embedding;
+        state.image = result.image.startsWith('data') ? result.image : `${process.env.REACT_APP_API_URL}/static/images/${result.image}`;
+      } else {
+        state.current = 0;
+        state.image = '';
+        state.embedding = '';
+        state.results = new Array<ImageResult>();
+        state.loading = false;
+        state.progress = { current: 0, total: 0 };
+      }
+    },
+    deleteAll(state) {
+      state.current = 0;
+      state.image = '';
+      state.embedding = '';
+      state.results = new Array<ImageResult>();
+      state.loading = false;
+      state.progress = { current: 0, total: 0 };
+    },
     setImage(state, action: PayloadAction<string>) {
-      state.image = action.payload;
+      if(action.payload) {
+        state.image = action.payload.startsWith('data') ? action.payload : `${process.env.REACT_APP_API_URL}/static/images/${action.payload}`;
+      } else {
+        state.image = '';
+      }
     },
     setSamEmbedding(state, action: PayloadAction<string>) {
       state.embedding = action.payload;
     },
-    setResults(state, action: PayloadAction<string[]>) {
+    setResults(state, action: PayloadAction<ImageResult[]>) {
       state.results = action.payload;
     },
-    appendResults(state, action: PayloadAction<string[]>) {
+    appendResults(state, action: PayloadAction<ImageResult[]>) {
       state.results.push(...action.payload);
     },
     deleteResult(state, action: PayloadAction<number>) {

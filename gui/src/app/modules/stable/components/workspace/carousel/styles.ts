@@ -8,6 +8,10 @@ export const Container = styled.div`
   gap: 10px;
   overflow-x: auto;
 
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
   @media (max-width: ${({ theme }) => theme.metrics.tablet_medium}) {
     min-height: 50px;
   }

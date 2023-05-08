@@ -42,20 +42,23 @@ function useInpaintingPageController() {
     const formData = new FormData();
     formData.append('image', file);
     
-    samService.generateEmbedding(formData).then(({ embedding }) => {
-      dispatch(propertiesActions.setSamEmbedding(embedding));
-    });
 
     const reader = new FileReader();
 
     reader.onload = (e) => {
       if(e.target) {
         const image = e.target.result as string;
+
+        samService.generateEmbedding({ image }).then(({ embedding }) => {
+          const imageResult = { id: 0, image, embedding, properties_id: 0 }
+          dispatch(propertiesActions.setSamEmbedding(embedding));
+          dispatch(propertiesActions.setResults([imageResult]));
+        });
+
         dispatch(propertiesActions.setImage(image));
-        dispatch(propertiesActions.setResults([image]));
       }
     }
-    
+
     reader.readAsDataURL(file);
   }
 
@@ -71,10 +74,8 @@ function useInpaintingPageController() {
 
     dispatch(propertiesActions.setLoading(true));
 
-    const formData = FormDataFactory({ ...properties, image, mask });
-
-    sdService.inpaint(formData).then(({ outputs }) => {
-      dispatch(propertiesActions.appendResults(outputs));
+    sdService.inpaint({ image, mask, properties }).then((result) => {
+      dispatch(propertiesActions.appendResults(result));
     }).finally(() => {
       dispatch(propertiesActions.setLoading(false));
       dispatch(propertiesActions.setProgress(0));
