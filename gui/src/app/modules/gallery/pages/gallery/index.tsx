@@ -1,15 +1,21 @@
+import { useEffect, useState } from "react";
+
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { BiPaint } from "react-icons/bi";
-import { TbDownload, TbInfoCircle, TbTrash } from "react-icons/tb";
+import { TbDownload, TbTrash } from "react-icons/tb";
 import { ImageData, useImageService } from "../../../../../infrastructure/services/image.service";
 import { propertiesActions } from "../../../../../infrastructure/redux/reducers/properties";
 import { contextMenuActions } from "../../../../../infrastructure/redux/reducers/contextmenu";
 import { Image } from "../../components/image";
+import { Viewer } from "../../components/viewer";
 import { Container, ImagesSection } from "./styles";
 
 export const GalleryPage = () => {
   const { images, getImages, deleteImage } = useImageService();
+  const [selectedImage, setSelectedImage] = useState<ImageData | null>(null);
+  const [hasPrevious, setHasPrevious] = useState<boolean>(false);
+  const [hasNext, setHasNext] = useState<boolean>(false);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -55,6 +61,7 @@ export const GalleryPage = () => {
           getImages();
           dispatch(propertiesActions.deleteResultById(data.id));
           dispatch(contextMenuActions.hideMenu());
+          handleCloseImage();
         });
       },
     },
@@ -66,9 +73,69 @@ export const GalleryPage = () => {
     dispatch(contextMenuActions.showMenu({ items: contextMenuItems(image), xPos: e.pageX, yPos: e.pageY }));
   }
 
+  const handleImageClick = (data: ImageData) => {
+    setSelectedImage(data);
+    dispatch(contextMenuActions.setItems(contextMenuItems(data)));
+  }
+
+  const handleCloseImage = () => {
+    setSelectedImage(null);
+    dispatch(contextMenuActions.setItems([]));
+  }
+
+  const handlePreviousImage = () =>  {
+    const index = images.findIndex((image) => image.id === selectedImage?.id);
+
+    if (index === -1) {
+      return;
+    }
+
+    const previousIndex = index - 1;
+
+    if (previousIndex < 0) {
+      return;
+    }
+
+    setSelectedImage(images[previousIndex]);
+  }
+  
+  const handleNextImage = () => {
+    const index = images.findIndex((image) => image.id === selectedImage?.id);
+
+    if (index === -1) {
+      return;
+    }
+
+    const nextIndex = index + 1;
+
+    if (nextIndex >= images.length) {
+      return;
+    }
+
+    setSelectedImage(images[nextIndex]);
+  }
+
+  useEffect(() => {
+    if (selectedImage) {
+      const index = images.findIndex((image) => image.id === selectedImage.id);
+
+      if (index === -1) {
+        return;
+      }
+
+      setHasPrevious(index > 0);
+      setHasNext(index < images.length - 1);
+    }
+  }, [selectedImage, images]);
+
   const renderImage = (data: ImageData) => {
     return (
-      <Image key={data.id} data={data} onContextMenu={e => handleContextMenu(e, data)} />
+      <Image 
+        key={data.id} 
+        data={data} 
+        onContextMenu={e => handleContextMenu(e, data)}
+        onClick={() => handleImageClick(data)}
+      />
     );
   }
 
@@ -77,6 +144,16 @@ export const GalleryPage = () => {
       <ImagesSection>
         {images.map(renderImage)}
       </ImagesSection>
+      <Viewer 
+        data={selectedImage} 
+        onClose={handleCloseImage}
+        constrolsProps={{
+          hasPrevious,
+          hasNext,
+          onPrevious: handlePreviousImage,
+          onNext: handleNextImage,
+        }}
+      />
     </Container>
   );
 }

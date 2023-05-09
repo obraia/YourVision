@@ -31,6 +31,9 @@ const stock = createSlice({
         state.items = [];
       }
     },
+    setItems(state, action: PayloadAction<ContextMenuItem[]>) {
+      state.items = action.payload;
+    }
   },
 });
 

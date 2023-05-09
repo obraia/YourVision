@@ -1,12 +1,13 @@
-import React from 'react'
 import { Container, Img, Name } from './styles'
 import { middleTruncateString } from '../../../shared/utils/formatters/string.formatter'
 import { ImageData } from '../../../../../infrastructure/services/image.service'
 
 interface Props {
   data: ImageData
-  onMouseDownCapture?: (e: React.MouseEvent<HTMLElement, MouseEvent>) => void
   onContextMenu?: (e: MouseEvent) => void
+  onClick?: (e: MouseEvent) => void
+  onNext?: () => void
+  onPrevious?: () => void
 }
 
 export const Image = (props: Props) => {
@@ -14,8 +15,8 @@ export const Image = (props: Props) => {
 
   return (
     <Container
-      onMouseDownCapture={props.onMouseDownCapture}
-      onContextMenu={props.onContextMenu}>
+      onContextMenu={props.onContextMenu}
+      onClick={props.onClick}>
       <Img src={src} />
       <Name>{middleTruncateString(props.data.image, 15)}</Name>
     </Container>
