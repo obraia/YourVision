@@ -14,6 +14,7 @@
 - Configurable editing tools
 - Optimized for desktop and mobile
 - Dark theme support
+- Gallery with the generated images
 
 # Instalation
 
@@ -70,7 +71,7 @@ First, you will need python v3.10.6 and nodejs v18.16.0 with yarn.
 - [ ] Auto conversion of .ckpt and .safetensors models
 - [ ] Translation support (Interface and Prompts)
 - [ ] Page with application settings
-- [ ] Generated images gallery
+- [x] Generated images gallery
 - [ ] Creation of shortcuts for the interface
 - [ ] Support for predefined generation filters
 - [ ] Create layer system
