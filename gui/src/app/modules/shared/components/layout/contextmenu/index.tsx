@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react'
 import { IconType } from 'react-icons'
 import { useDispatch } from 'react-redux'
-import { hideMenu } from '../../../../../../infrastructure/redux/reducers/contextmenu'
+import { contextMenuActions } from '../../../../../../infrastructure/redux/reducers/contextmenu'
 
 import { Container, MenuItem, MenuItems } from './styles'
 
@@ -25,7 +25,7 @@ const ContextMenu: React.FC<Props> = (props) => {
 
   const handleClick = () => {
     if (props.isOpen) {
-      dispatch(hideMenu())
+      dispatch(contextMenuActions.hideMenu())
     }
   }
 
@@ -34,9 +34,8 @@ const ContextMenu: React.FC<Props> = (props) => {
       <MenuItem
         key={i.id}
         onClick={i.onClick}
-        onMouseDown={(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => e.stopPropagation()}
-      >
-        {<i.icon size={20} />}
+        onMouseDown={(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => e.stopPropagation()}>
+        <i.icon size={20} />
         {i.name}
       </MenuItem>
     ))
@@ -52,7 +51,7 @@ const ContextMenu: React.FC<Props> = (props) => {
   })
 
   return props.isOpen ? (
-    <Container xPos={props.xPos} yPos={props.yPos}>
+    <Container $xPos={props.xPos} $yPos={props.yPos}>
       <MenuItems>{renderItems()}</MenuItems>
     </Container>
   ) : null

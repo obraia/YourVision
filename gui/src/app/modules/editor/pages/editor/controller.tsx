@@ -1,9 +1,8 @@
 import { useEffect, useRef } from 'react'
 import { useDispatch } from 'react-redux';
-import { useSamService } from '../../../../../infrastructure/services/sam/sam.service'
-import { useSdService } from '../../../../../infrastructure/services/sd/sd.service';
+import { useSamService } from '../../../../../infrastructure/services/sam.service'
+import { useSdService } from '../../../../../infrastructure/services/sd.service';
 import { propertiesActions } from '../../../../../infrastructure/redux/reducers/properties';
-import { FormDataFactory } from '../../../shared/utils/factories/formdata.factory';
 import { EditorRef } from '../../components/workspace/editor';
 import { useSocket } from '../../../shared/hooks/useSocket';
 
@@ -27,7 +26,7 @@ export interface Properties {
   negative: string;
 }
 
-function useInpaintingPageController() {
+function useEditorPageController() {
   const dispatch = useDispatch();
   const samService = useSamService();
   const sdService = useSdService();
@@ -96,4 +95,4 @@ function useInpaintingPageController() {
   }
 }
 
-export { useInpaintingPageController }
+export { useEditorPageController }

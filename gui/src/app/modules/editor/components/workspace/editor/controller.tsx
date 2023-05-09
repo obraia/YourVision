@@ -77,8 +77,9 @@ function useController(ref: ForwardedRef<EditorRef>) {
 
         if(image) {
           image.then((base64) => {
+            const timestamp = new Date().getTime();
             const link = document.createElement('a');
-            link.setAttribute('download', 'image.png');
+            link.setAttribute('download', timestamp + '.png');
             link.setAttribute('href', base64);
             link.click();
           });

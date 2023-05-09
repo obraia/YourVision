@@ -3,6 +3,7 @@ from flask_restx import Resource
 
 from models.image import ImageModel
 from schemas.image import ImageSchema
+from utils.filesystem import FilesystemUtils
 
 from infra.server.instance import server
 
@@ -28,7 +29,10 @@ class Image(Resource):
         image = ImageModel.find_by_id(id)
         
         if image:
+            FilesystemUtils.rm(os.path.join(IMAGE_FOLDER, image.image))
+            FilesystemUtils.rm(os.path.join(EMBEDDING_FOLDER, image.embedding))
             image.delete()
+
             return {'message': 'Image deleted'}, 200
         
         return {'message': 'Image not found'}, 404
@@ -36,4 +40,8 @@ class Image(Resource):
 class ImageList(Resource):
     
     def get(self):
-        return image_list_schema.dump(ImageModel.find_all()), 200
+        images = ImageModel.find_all()
+        if images:
+            images = [image.to_json() for image in images]
+            return image_list_schema.dump(images), 200
+        return [], 200

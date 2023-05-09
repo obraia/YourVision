@@ -34,5 +34,5 @@ const stock = createSlice({
   },
 });
 
-export const { showMenu, hideMenu } = stock.actions;
+export const { ...contextMenuActions } = stock.actions;
 export default stock.reducer;

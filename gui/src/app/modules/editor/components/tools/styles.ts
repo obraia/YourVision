@@ -4,7 +4,7 @@ import { Scroll } from '../../../shared/components/layout/scroll';
 
 export const Container = styled.div`
   min-width: 5px;
-  max-width: 1000px;
+  max-width: 200px;
   height: 100%;
   position: relative;
   display: flex;

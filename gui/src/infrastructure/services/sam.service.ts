@@ -1,4 +1,4 @@
-import { useAxios } from '../../../app/modules/shared/hooks/useAxios'
+import { useAxios } from '../../app/modules/shared/hooks/useAxios'
 
 const useSamService = () => {
   const axios = useAxios('/sam')

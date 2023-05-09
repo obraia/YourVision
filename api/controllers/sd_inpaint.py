@@ -8,7 +8,7 @@ from utils.time import TimeUtils
 
 from models.image import ImageModel
 from schemas.image import ImageSchema
-from schemas.image_properties import ImagePropertiesModelSchema
+from schemas.image_properties import ImagePropertiesSchema
 
 from infra.server.instance import server
 
@@ -20,7 +20,7 @@ image_ns = server.image_ns
 
 image_schema = ImageSchema()
 image_list_schema = ImageSchema(many=True)
-image_properties_schema = ImagePropertiesModelSchema()
+image_properties_schema = ImagePropertiesSchema()
 
 properties = image_ns.model('properties', {
     'model': fields.String(required=True, description='Model name'),
@@ -69,6 +69,7 @@ class SdInpaint(Resource):
                 'image': image_name,
                 'embedding': embedding_name,
                 'properties_id': properties_id,
+                'created_at': timestamp,
             }
 
             np.save(os.path.join(EMBEDDING_FOLDER, embedding_name), embedding)
@@ -77,5 +78,7 @@ class SdInpaint(Resource):
             images.append(image_data)
 
         ImageModel.bulk_insert(images)
+
+        images = [image.to_json() for image in images]
 
         return image_list_schema.dump(images), 201

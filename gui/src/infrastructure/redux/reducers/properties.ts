@@ -1,5 +1,5 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
-import { Properties } from '../../../app/modules/stable/pages/inpainting/controller';
+import { Properties } from '../../../app/modules/editor/pages/editor/controller';
 
 export interface ImageResult {
   id: number;
@@ -96,6 +96,13 @@ const stock = createSlice({
     },
     deleteResult(state, action: PayloadAction<number>) {
       state.results.splice(action.payload, 1);
+    },
+    deleteResultById(state, action: PayloadAction<number>) {
+      const index = state.results.findIndex((result) => result.id === action.payload);
+      
+      if(index !== -1) {
+        state.results.splice(index, 1);
+      }
     },
     setLoading(state, action: PayloadAction<boolean>) {
       state.loading = action.payload;

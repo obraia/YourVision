@@ -1,16 +1,15 @@
 import React, { Fragment } from 'react'
-
-import { useInpaintingPageController } from './controller'
 import { Workspace } from '../../components/workspace'
-import { Tools } from '../../components/tools';
 import { Properties } from '../../components/properties';
+import { Tools } from '../../components/tools';
+import { useEditorPageController } from './controller'
 
-const InpaintingPage: React.FC = () => {
+const EditorPage: React.FC = () => {
   const {
     editorRef,
     onUpload,
     onSubmit
-  } = useInpaintingPageController();
+  } = useEditorPageController();
 
   return (
     <Fragment>
@@ -21,4 +20,4 @@ const InpaintingPage: React.FC = () => {
   )
 }
 
-export { InpaintingPage }
+export { EditorPage }

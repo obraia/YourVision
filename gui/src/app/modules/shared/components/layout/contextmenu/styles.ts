@@ -2,7 +2,7 @@ import styled, { css } from 'styled-components'
 import { lighten } from 'polished'
 import { Button } from '../../button/styles'
 
-export const Container = styled.div<{ xPos: number; yPos: number }>`
+export const Container = styled.div<{ $xPos: number; $yPos: number }>`
   display: flex;
   position: fixed;
   top: 0;
@@ -14,10 +14,10 @@ export const Container = styled.div<{ xPos: number; yPos: number }>`
   background-color: ${({ theme }) => lighten(0.05, theme.colors.background)};
   box-shadow: 0px 0px 10px #00000020;
 
-  transform: ${({ xPos, yPos }) =>
+  transform: ${({ $xPos, $yPos }) =>
     css`
-      translateX(min(${xPos}px, calc(100vw - 100%))) 
-      translateY(min(${yPos}px, calc(100vh - 100%)))
+      translateX(min(${$xPos}px, calc(100vw - 100%))) 
+      translateY(min(${$yPos}px, calc(100vh - 100%)))
     `};
 `
 

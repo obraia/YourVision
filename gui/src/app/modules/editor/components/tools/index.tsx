@@ -7,7 +7,7 @@ import { FaEraser, FaPaintBrush, FaSave, FaTrash } from 'react-icons/fa';
 import { MdOpacity } from 'react-icons/md';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../../../../infrastructure/redux/store';
-import { EditorRef } from '../../../stable/components/workspace/editor';
+import { EditorRef } from '../workspace/editor';
 import { propertiesActions } from '../../../../../infrastructure/redux/reducers/properties';
 
 interface Props {
@@ -158,7 +158,7 @@ const Tools = (props: Props) => {
       icon: <FaTrash />,
       properties: [
         {
-          label: 'Delete current',
+          label: 'Remove current',
           type: 'button',
           buttonOptions: {
             color: 'textPrimary',
@@ -169,7 +169,7 @@ const Tools = (props: Props) => {
           }
         },
         {
-          label: 'Delete all',
+          label: 'Remove all',
           type: 'button',
           buttonOptions: {
             color: 'error',

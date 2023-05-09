@@ -1,8 +1,7 @@
-import { useMemo } from 'react';
 import io from 'socket.io-client';
 
 const useSocket = () => {
-  const socket = io('localhost:5000', {
+  const socket = io('192.168.18.68:5000', {
     transports: ["websocket"],
   });
 

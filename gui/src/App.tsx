@@ -1,7 +1,7 @@
 import React, { Fragment } from 'react'
 import { useSelector } from 'react-redux'
 import { ThemeProvider } from 'styled-components'
-import { Routes } from './infrastructure/routes/index.routes'
+import { AppRoutes } from './infrastructure/routes/index.routes'
 import { GlobalStyle } from './infrastructure/styles/global'
 import { RootState } from './infrastructure/redux/store'
 
@@ -12,7 +12,7 @@ const App: React.FC = () => {
     <ThemeProvider theme={theme}>
       <Fragment>
         <GlobalStyle />
-        <Routes />
+        <AppRoutes />
       </Fragment>
     </ThemeProvider>
   )

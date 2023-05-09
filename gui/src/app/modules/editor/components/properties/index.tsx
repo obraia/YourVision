@@ -4,10 +4,10 @@ import { IoReload } from 'react-icons/io5';
 import { AiOutlineLock } from 'react-icons/ai';
 import { TbArrowsRandom } from 'react-icons/tb';
 import { RootState } from '../../../../../infrastructure/redux/store';
-import { Properties } from '../../../stable/pages/inpainting/controller';
+import { Properties } from '../../pages/editor/controller';
 import { propertiesActions } from '../../../../../infrastructure/redux/reducers/properties';
 import { Field, Form, FormRef } from '../../../shared/components/form';
-import { useSdService } from '../../../../../infrastructure/services/sd/sd.service';
+import { useSdService } from '../../../../../infrastructure/services/sd.service';
 import { Button, ButtonText, Container, Gutter, PropertiesWrapper } from './styles';
 
 interface Props {

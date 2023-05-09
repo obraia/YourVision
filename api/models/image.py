@@ -1,4 +1,6 @@
+from sqlalchemy import desc
 from infra.database.db import db
+from models.image_properties import ImagePropertiesModel
 
 class ImageModel(db.Model):
     __tablename__ = 'images'
@@ -7,21 +9,26 @@ class ImageModel(db.Model):
     image = db.Column(db.String(45), nullable=False)
     embedding = db.Column(db.String(45), nullable=False)
     properties_id = db.Column(db.Integer, db.ForeignKey('images_properties.id'), nullable=False)
+    created_at = db.Column(db.Integer, nullable=False)
+    properties = db.relationship(ImagePropertiesModel, lazy='subquery')
 
-    def __init__(self, image, embedding, properties_id):
+    def __init__(self, image, embedding, properties_id, created_at):
         self.image = image
         self.embedding = embedding
         self.properties_id = properties_id
+        self.created_at = created_at
 
     def __repr__(self):
         return f'<Image {self.id}>'
     
-    def json(self):
+    def to_json(self):
         return {
             'id': self.id,
             'image': self.image,
             'embedding': self.embedding,
-            'properties_id': self.properties_id
+            'properties_id': self.properties_id,
+            'created_at': self.created_at,
+            'properties': self.properties.to_json()
         }
     
     @classmethod
@@ -40,7 +47,7 @@ class ImageModel(db.Model):
     
     @classmethod
     def find_all(cls):
-        images = cls.query.all()
+        images = cls.query.order_by(desc(ImageModel.created_at)).all()
         if images:
             return images
         return None
@@ -54,7 +61,7 @@ class ImageModel(db.Model):
     
     @classmethod
     def bulk_insert(cls, images):
-        db.session.bulk_save_objects(images, return_defaults=True)
+        db.session.add_all(images)
         db.session.commit()
 
     def save(self):

@@ -38,7 +38,7 @@ export const MenuItems = styled.nav`
   }
 `;
 
-export const MenuItem = styled(Link)`
+export const MenuItem = styled.button`
   width: 20px;
   height: 20px;
   display: flex;
@@ -49,6 +49,7 @@ export const MenuItem = styled(Link)`
   font-size: 16px;
   white-space: nowrap;
   text-decoration: none;
+  background-color: ${({ theme }) => theme.colors.background};
   color: ${({ theme }) => theme.colors.textBackground};
   overflow: hidden;
   cursor: pointer;
@@ -58,10 +59,9 @@ export const MenuItem = styled(Link)`
     background-color: ${({ theme }) => darken(0.005, theme.colors.background)};
   }
 
-  &.active {
+  &:active {
     color: ${({ theme }) => theme.colors.primary};
     background-color: ${({ theme }) => transparentize(0.8, theme.colors.primary)};
-    pointer-events: none;
   }
 
   svg {

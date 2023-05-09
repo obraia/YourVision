@@ -30,7 +30,7 @@ class ImagePropertiesModel(db.Model):
     def __repr__(self):
         return f'<ImagePropertiesModel {self.id}>'
     
-    def json(self):
+    def to_json(self):
         return {
             'id': self.id,
             'model': self.model,

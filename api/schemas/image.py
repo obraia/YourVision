@@ -5,4 +5,4 @@ class ImageSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = ImageModel
         load_instance = True
-        fields = ('id', 'image', 'embedding', 'properties_id')
+        fields = ('id', 'image', 'embedding', 'properties_id', 'created_at', 'properties')

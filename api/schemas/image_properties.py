@@ -1,7 +1,7 @@
 from infra.database.ma import ma
 from models.image_properties import ImagePropertiesModel
 
-class ImagePropertiesModelSchema(ma.SQLAlchemyAutoSchema):
+class ImagePropertiesSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = ImagePropertiesModel
         load_instance = True
