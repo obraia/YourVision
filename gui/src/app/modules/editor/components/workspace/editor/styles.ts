@@ -9,21 +9,26 @@ export const Container = styled.div`
   border-radius: 10px;
   background-color: ${({ theme }) => lighten(0.08, theme.colors.background)};
   overflow: hidden;
-
-  @media (max-width: ${({ theme }) => theme.metrics.tablet_medium}) {
-    max-height: 400px;
-  }
 `;
 
 export const Canvas = styled.canvas<{ cursor?: string }>`
   z-index: 1;
   cursor: ${({ cursor }) => cursor || 'none'};
+  position: relative;
 `;
+
+export const Border = styled.div<{ $width: number, $height: number }>`
+  width: ${({ $width }) => $width + 'px'};
+  height: ${({ $height }) => $height + 'px'};
+  position: absolute;
+  border: 2px dashed ${({ theme }) => lighten(0.08, theme.colors.primary)};
+  pointer-events: none;
+  z-index: 2;
+`; 
 
 export const Image = styled.img`
   position: fixed;
   object-fit: contain;
-  border: 2px dashed ${({ theme }) => lighten(0.08, theme.colors.primary)};
   z-index: 0;
 `;
 

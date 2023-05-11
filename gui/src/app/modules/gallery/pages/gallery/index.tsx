@@ -3,16 +3,17 @@ import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { BiPaint } from "react-icons/bi";
-import { TbDownload, TbTrash } from "react-icons/tb";
+import { TbCopy, TbDownload, TbTrash } from "react-icons/tb";
 import { ImageData, useImageService } from "../../../../../infrastructure/services/image.service";
 import { propertiesActions } from "../../../../../infrastructure/redux/reducers/properties";
 import { contextMenuActions } from "../../../../../infrastructure/redux/reducers/contextmenu";
 import { Image } from "../../components/image";
 import { Viewer } from "../../components/viewer";
+import { Pagination } from "../../components/pagination";
 import { Container, ImagesSection } from "./styles";
 
 export const GalleryPage = () => {
-  const { images, getImages, deleteImage } = useImageService();
+  const { images, pagination, prevImages, nextImages, getImages, deleteImage } = useImageService();
   const [selectedImage, setSelectedImage] = useState<ImageData | null>(null);
   const [hasPrevious, setHasPrevious] = useState<boolean>(false);
   const [hasNext, setHasNext] = useState<boolean>(false);
@@ -53,12 +54,22 @@ export const GalleryPage = () => {
       },
     },
     {
+      id: 'COPY_PROPERTIES',
+      name: 'Copy properties',
+      icon: TbCopy,
+      onClick() {
+        const properties = JSON.stringify(data.properties);
+        navigator.clipboard.writeText(properties);
+        dispatch(contextMenuActions.hideMenu());
+      },
+    },
+    {
       id: 'DELETE',
       name: 'Delete',
       icon: TbTrash,
       onClick() { 
         deleteImage(data.id).then(() => {
-          getImages();
+          getImages({ page: pagination.page, per_page: 20 });
           dispatch(propertiesActions.deleteResultById(data.id));
           dispatch(contextMenuActions.hideMenu());
           handleCloseImage();
@@ -83,7 +94,7 @@ export const GalleryPage = () => {
     dispatch(contextMenuActions.setItems([]));
   }
 
-  const handlePreviousImage = () =>  {
+  const handlePrevImage = () =>  {
     const index = images.findIndex((image) => image.id === selectedImage?.id);
 
     if (index === -1) {
@@ -96,7 +107,10 @@ export const GalleryPage = () => {
       return;
     }
 
-    setSelectedImage(images[previousIndex]);
+    const previousImage = images[previousIndex];
+    
+    setSelectedImage(previousImage);
+    dispatch(contextMenuActions.setItems(contextMenuItems(previousImage)));
   }
   
   const handleNextImage = () => {
@@ -112,7 +126,10 @@ export const GalleryPage = () => {
       return;
     }
 
-    setSelectedImage(images[nextIndex]);
+    const nextImage = images[nextIndex];
+
+    setSelectedImage(nextImage);
+    dispatch(contextMenuActions.setItems(contextMenuItems(nextImage)));
   }
 
   useEffect(() => {
@@ -144,13 +161,23 @@ export const GalleryPage = () => {
       <ImagesSection>
         {images.map(renderImage)}
       </ImagesSection>
+
+      <Pagination 
+        pages={pagination.pages}
+        total={pagination.total}
+        hasNext={pagination.has_next}
+        hasPrev={pagination.has_prev}
+        onPrevious={prevImages}
+        onNext={nextImages}
+      />
+
       <Viewer 
         data={selectedImage} 
         onClose={handleCloseImage}
         constrolsProps={{
           hasPrevious,
           hasNext,
-          onPrevious: handlePreviousImage,
+          onPrevious: handlePrevImage,
           onNext: handleNextImage,
         }}
       />

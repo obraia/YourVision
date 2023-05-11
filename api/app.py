@@ -6,6 +6,7 @@ from controllers.image import Image, ImageList
 from controllers.sd_model import SdModelList
 from controllers.sd_sampler import SdSamplerList
 from controllers.sd_inpaint import SdInpaint
+from controllers.sd_text_to_image import SdTextToImage
 from controllers.sam_model import SamModelList
 from controllers.sam_embedding import SamEmbedding
 
@@ -35,6 +36,7 @@ api.add_resource(Image, '/images/<int:id>')
 api.add_resource(ImageList, '/images')
 api.add_resource(SdModelList, '/sd/models')
 api.add_resource(SdInpaint, '/sd/inpaint')
+api.add_resource(SdTextToImage, '/sd/text-to-image')
 api.add_resource(SdSamplerList, '/sd/samplers')
 api.add_resource(SamEmbedding, '/sam/embedding')
 api.add_resource(SamModelList, '/sam/models')

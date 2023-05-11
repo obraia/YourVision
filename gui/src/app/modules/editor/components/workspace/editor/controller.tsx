@@ -7,7 +7,6 @@ import { onnxMaskToImage } from "../../../../../../infrastructure/utils/mask.uti
 import { RootState } from "../../../../../../infrastructure/redux/store";
 import { propertiesActions } from "../../../../../../infrastructure/redux/reducers/properties";
 import { EditorRef } from ".";
-import { useSocket } from "../../../../shared/hooks/useSocket";
 
 interface ModelScale {
   samScale: number;
@@ -18,7 +17,7 @@ interface ModelScale {
 const SAM_MODEL_PATH = '/model/sam_vit_l_0b3195.onnx';
 
 function useController(ref: ForwardedRef<EditorRef>) {
-  const { image, embedding } = useSelector((state: RootState) => state.properties);
+  const { results, properties, embedding } = useSelector((state: RootState) => state.properties);
   const { tool, mask, brush, eraser } = useSelector((state: RootState) => state.tools);
 
   const [model, setModel] = useState<InferenceSession | null>(null);
@@ -28,9 +27,10 @@ function useController(ref: ForwardedRef<EditorRef>) {
   const [zoomScale, setZoomScale] = useState(1);
 
   const containerRef = useRef<HTMLDivElement>(null);
-  const zoomRef = useRef<HTMLDivElement>(null);
+  const zoomRef = useRef<any>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
+  const borderRef = useRef<HTMLDivElement>(null);
   const cursorRef = useRef<HTMLDivElement>(null);
 
   const dispatch = useDispatch();
@@ -42,17 +42,21 @@ function useController(ref: ForwardedRef<EditorRef>) {
       getImage() {
         const { current: image } = imageRef;
 
-        if(image) {
+        if(image && !image.src.endsWith('empty')) {
           return imageToBase64(image.src);
         }
       },
       getMask() {
         const { current: originalCanvas } = canvasRef;
-    
+
         if (originalCanvas) {
+          const isCanvasEmpty = checkCanvasEmpty(originalCanvas);
+
+          if(isCanvasEmpty) return;
+
           const canvas = document.createElement('canvas');
           const context = canvas.getContext('2d');
-    
+
           if(context) {
             canvas.width = originalCanvas.width;
             canvas.height = originalCanvas.height;
@@ -115,12 +119,18 @@ function useController(ref: ForwardedRef<EditorRef>) {
     };
   }, []);
 
-  const imageToFile = (image: string, fileName: string, mimeType: string) => {
-    return (
-      fetch(image)
-        .then(res => res.arrayBuffer())
-        .then(buf => new File([buf], fileName, { type: mimeType }))
-    );
+  const checkCanvasEmpty = (canvas: HTMLCanvasElement) => {
+    const context = canvas.getContext('2d');
+
+    if(context) {
+      const pixelBuffer = new Uint32Array(
+        context.getImageData(0, 0, canvas.width, canvas.height).data.buffer
+      );
+
+      return !pixelBuffer.some(color => color !== 0);
+    }
+
+    return true;
   }
 
   const imageToBase64 = (image: string): Promise<string> => {
@@ -166,14 +176,85 @@ function useController(ref: ForwardedRef<EditorRef>) {
     }
   }
 
+  const resetZoom = () => {
+    const { current: zoom } = zoomRef;
+
+    if (zoom) {
+      zoom._zoomFactor = 1;
+      zoom._onResize();
+    }
+  }
+
   const resizeCanvas = () => {
     const { current: canvas } = canvasRef;
     const { current: image } = imageRef;
-  
-    if (canvas && image) {
-      const scale = Math.min(((window.innerWidth - 40) / (image.width)), 1);
-      canvas.style.transform = `scale(${scale})`;
-      image.style.transform = `scale(${scale})`;
+    const { current: border } = borderRef;
+    const { current: zoom } = zoomRef;
+    
+    if (canvas && image && border && zoom) {
+      const context = canvas.getContext('2d');
+
+      const imageScale = Math.min(
+        properties.width / image.naturalWidth,
+        properties.height / image.naturalHeight,
+      );
+
+      const imageWidth = image.naturalWidth * imageScale;
+      const imageHeight = image.naturalHeight * imageScale;
+
+      if (context) {
+        const scaleX = imageWidth / (image.width);
+        const scaleY = imageHeight / (image.height);
+        const dx = (properties.width / 2 - (canvas.width * scaleX) / 2);
+        const dy = (properties.height / 2 - (canvas.height * scaleY) / 2);
+
+        const tempCanvas = document.createElement('canvas');
+        const tempContext = tempCanvas.getContext('2d');
+
+        if(tempContext) {
+          // Copy canvas to temp canvas
+          tempCanvas.width = properties.width;
+          tempCanvas.height = properties.height;
+          tempContext.scale(scaleX, scaleY);
+          tempContext.drawImage(canvas, dx, dy);
+          tempContext.globalCompositeOperation = context.globalCompositeOperation
+          tempContext.strokeStyle = context.strokeStyle;
+          tempContext.lineWidth = context.lineWidth;
+          tempContext.lineJoin = context.lineJoin;
+          tempContext.lineCap = context.lineCap;
+          tempContext.filter = context.filter;
+          
+          // Paste temp canvas to canvas
+          canvas.width = properties.width;
+          canvas.height = properties.height;
+          context.drawImage(tempCanvas, 0, 0, properties.width, properties.height);
+          context.globalCompositeOperation = tempContext.globalCompositeOperation
+          context.strokeStyle = tempContext.strokeStyle;
+          context.lineWidth = tempContext.lineWidth;
+          context.lineJoin = tempContext.lineJoin;
+          context.lineCap = tempContext.lineCap;
+          context.filter = tempContext.filter;
+        }
+
+        image.width = imageWidth;
+        image.height = imageHeight;
+      }
+      
+      const { parentElement } = canvas;
+
+      if (parentElement) {
+        const { width, height } = parentElement.getBoundingClientRect();
+        const scaleW = Math.min((((width / zoomScale) - 40) / (canvas.width)), 1);
+        const scaleH = Math.min((((height / zoomScale) - 40) / (canvas.height)), 1);
+        const scale = Math.min(scaleW, scaleH);
+        
+        canvas.style.transform = `scale(${scale})`;
+        image.style.transform = `scale(${scale})`;
+        border.style.transform = `scale(${scale})`;
+        border.style.borderWidth = `${2 / scale}px`;
+
+        resetZoom();
+      }
     }
   }
 
@@ -376,26 +457,37 @@ function useController(ref: ForwardedRef<EditorRef>) {
   }, [])
 
   /**
-   * Load model scale and resize canvas on image load
+   * Resize canvas and load model scale
    */
   useEffect(() => {
-    if (image) {
-      loadSamModelScale();
-      resizeCanvas();
+    const { current: image } = imageRef;
 
-      window.addEventListener('resize', resizeCanvas);
-
-      return () => {
-        window.removeEventListener('resize', resizeCanvas);
+    if (image) { 
+      image.onload = () => {
+        resizeCanvas();
+        loadSamModelScale();
       }
     }
-  }, [image])
+
+    window.addEventListener('resize', resizeCanvas);
+
+    return () => {
+      window.removeEventListener('resize', resizeCanvas);
+    }
+  }, [])
+
+  /**
+   * Resize canvas
+   */
+  useEffect(() => {    
+    resizeCanvas();
+  }, [properties.width, properties.height, results])
 
   /**
    * Load the Segment Anything pre-computed embedding
    */
   useEffect(() => {
-    if (embedding) {
+    if (embedding && embedding !== 'empty') {
       loadNpyTensor(`${process.env.REACT_APP_API_URL}/static/embeddings/${embedding}`);
     }
   }, [embedding])
@@ -507,6 +599,7 @@ function useController(ref: ForwardedRef<EditorRef>) {
       zoomRef,
       canvasRef,
       imageRef,
+      borderRef,
       cursorRef,
     },
     canvasHandles: {

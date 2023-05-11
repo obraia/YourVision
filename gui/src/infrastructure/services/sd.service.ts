@@ -1,34 +1,46 @@
 import { useAxios } from '../../app/modules/shared/hooks/useAxios'
 
+interface Properties {
+  model: string;
+  positive: string;
+  negative: string;
+  images: number;
+  steps: number;
+  cfg: number;
+  width: number;
+  height: number;
+  sampler: string;
+  seed: number;
+}
+
 interface InpaintRequest {
   image: string;
   mask: string;
-  properties: {
-    model: string;
-    positive: string;
-    negative: string;
-    images: number;
-    steps: number;
-    cfg: number;
-    width: number;
-    height: number;
-    sampler: string;
-    seed: number;
-  }
+  properties: Properties
 }
 
-interface InpaintResponse {
+interface TextToImageRequest {
+  properties: Properties
+}
+
+interface ImageResponse {
   id: number;
   image: string;
   embedding: string;
   properties_id: number;
 }
 
+
 const useSdService = () => {
   const axios = useAxios('/sd');
 
   const inpaint = async (body: InpaintRequest) => {
-    const { data } = await axios.post<InpaintResponse[]>('/inpaint', body)
+    const { data } = await axios.post<ImageResponse[]>('/inpaint', body)
+    return data;
+  }
+
+  const textToImage = async (body: TextToImageRequest) => {
+    const { data } = await axios.post<ImageResponse[]>('/text-to-image', body)
     return data;
   }
 
@@ -44,6 +56,7 @@ const useSdService = () => {
 
   return {
     inpaint,
+    textToImage,
     getModels,
     getSamplers,
   }

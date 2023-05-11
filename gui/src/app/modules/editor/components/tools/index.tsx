@@ -46,13 +46,13 @@ const Tools = (props: Props) => {
   const tools: Tool[] = [
     {
       name: 'Select',
-      icon: <ImMagicWand />,
+      icon: ImMagicWand,
       active: tool === 'select',
       onClick() { dispatch(toolsActions.setTool('select')) },
     },
     {
       name: 'Brush',
-      icon: <FaPaintBrush />,
+      icon: FaPaintBrush,
       active: tool === 'brush',
       properties: [
         {
@@ -71,7 +71,7 @@ const Tools = (props: Props) => {
     },
     {
       name: 'Eraser',
-      icon: <FaEraser />,
+      icon: FaEraser,
       active: tool === 'eraser',
       properties: [
         {
@@ -90,7 +90,7 @@ const Tools = (props: Props) => {
     },
     {
       name: 'Mask',
-      icon: <MdOpacity />,
+      icon: MdOpacity,
       properties: [
         {
           label: 'Mask opacity',
@@ -148,14 +148,14 @@ const Tools = (props: Props) => {
     },
     {
       name: 'Save',
-      icon: <FaSave />,
+      icon: FaSave,
       onClick() {
         props.editorRef.current?.saveImage();
       },
     },
     {
       name: 'Delete',
-      icon: <FaTrash />,
+      icon: FaTrash,
       properties: [
         {
           label: 'Remove current',

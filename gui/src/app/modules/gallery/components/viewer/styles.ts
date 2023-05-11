@@ -34,5 +34,5 @@ export const Img = styled.img.attrs({
     justify-content: center;
     align-items: center;
     object-fit: cover;
-    border-radius: ${({ theme }) => theme.metrics.inner_radius};
+    border-radius: ${({ theme }) => theme.metrics.radius};
 `;

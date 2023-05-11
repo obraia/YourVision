@@ -20,12 +20,54 @@ export interface ImageData {
   }
 }
 
+export interface ImageParamsRequest {
+  page: number;
+  per_page: number;
+}
+
+export interface ImageResponse {
+  items: ImageData[];
+  pages: number;
+  total: number;
+  has_next: boolean;
+  has_prev: boolean;
+}
+
 export const useImageService = () => {
   const axios = useAxios('/images');
+  
   const [images, setImages] = useState<ImageData[]>([]);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    pages: 1,
+    total: 1,
+    has_next: false,
+    has_prev: false
+  });
 
-  const getImages = () => {
-    axios.get<ImageData[]>('').then(({ data }) => { setImages(data) });
+  const getImages = (params: ImageParamsRequest) => {
+    axios.get<ImageResponse>('', { params }).then(({ data }) => { 
+      setImages(data.items);
+      setPagination({
+        page: params.page,
+        pages: data.pages,
+        total: data.total,
+        has_next: data.has_next,
+        has_prev: data.has_prev
+      });
+     });
+  }
+
+  const prevImages = () => {
+    if (pagination.has_prev) {
+      getImages({ page: pagination.page - 1, per_page: 20 });
+    }
+  }
+
+  const nextImages = () => {
+    if (pagination.has_next) {
+      getImages({ page: pagination.page + 1, per_page: 20 });
+    }
   }
 
   const deleteImage = (id: number) => {
@@ -33,12 +75,15 @@ export const useImageService = () => {
   }
 
   useEffect(() => {
-    getImages();
+    getImages({ page: 1, per_page: 20 });
   }, []);
 
   return {
     images,
+    pagination,
     getImages,
+    prevImages,
+    nextImages,
     deleteImage
   }
 }

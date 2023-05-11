@@ -1,3 +1,4 @@
+import gc
 import os
 import random
 import torch
@@ -43,10 +44,29 @@ class SdService:
 
       return scheduler
       
-  def load_model(model, sampler):
+  def load_inpaint_model(model, sampler):
       diffuser = os.path.join(SdService.difussers_dir, model)
       scheduler = SdService.load_scheduler(diffuser, sampler)
       pipe = pipelines.StableDiffusionInpaintPipeline.from_pretrained(
+          diffuser,
+          scheduler=scheduler,
+          revision="fp16",
+          safety_checker=None,
+          torch_dtype=torch.float16,
+      ).to(SdService.device)
+
+      # pipe.enable_sequential_cpu_offload()
+      # pipe.enable_attention_slicing()
+      # pipe.enable_model_cpu_offload() 
+      # pipe.enable_vae_slicing() 
+      # pipe.enable_vae_tiling() 
+
+      return pipe
+      
+  def load_text_to_image_model(model, sampler):
+      diffuser = os.path.join(SdService.difussers_dir, model)
+      scheduler = SdService.load_scheduler(diffuser, sampler)
+      pipe = pipelines.StableDiffusionPipeline.from_pretrained(
           diffuser,
           scheduler=scheduler,
           revision="fp16",
@@ -83,7 +103,7 @@ class SdService:
     #   emit_progress({ "step": step })
 
   def inpaint(image, mask, properties, emit_progress):
-      pipe = SdService.load_model(properties.model, properties.sampler)
+      pipe = SdService.load_inpaint_model(properties.model, properties.sampler)
       width, height = ImageUtils.proportion(image, properties.width, properties.height)
       image = ImageUtils.resize(image, properties.width, properties.height)
       mask = ImageUtils.resize(mask, properties.width, properties.height)
@@ -116,6 +136,42 @@ class SdService:
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
             torch.cuda.ipc_collect()
+
+      del pipe
+      del generator
+      gc.collect()
+
+      return outputs
+
+  def text_to_image(properties, emit_progress):
+      pipe = SdService.load_text_to_image_model(properties.model, properties.sampler)
+      generator = SdService.load_generator(properties.seed)
+      outputs = []
+
+      for i in range(properties.images):
+        output = pipe(
+            prompt=properties.positive,
+            negative_prompt=properties.negative,
+            num_inference_steps=properties.steps,
+            guidance_scale=properties.cfg,
+            num_images_per_prompt=1,
+            width=properties.width,
+            height=properties.height,
+            generator=generator,
+            callback_steps=1,
+            callback=lambda s, _, l: SdService.latents_callback(((s + 1) + (i * properties.steps)), l, pipe, emit_progress),
+            eta=0.0,
+        ).images[0]
+
+        outputs.append(output)
+
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+            torch.cuda.ipc_collect()
+
+      del pipe
+      del generator
+      gc.collect()
 
       return outputs
 

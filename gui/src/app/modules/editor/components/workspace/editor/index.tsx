@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import { useController } from './controller';
 import { Zoom } from '../zoom';
 import { RootState } from '../../../../../../infrastructure/redux/store';
-import { BrushIndicator, Canvas, Container, CursorWrapper, Image } from './styles';
+import { Border, BrushIndicator, Canvas, Container, CursorWrapper, Image } from './styles';
 
 export interface EditorRef {
   getImage: () => Promise<string> | undefined;
@@ -38,10 +38,9 @@ const EditorInner = (props: unknown, ref: ForwardedRef<EditorRef>) => {
           onTouchStart={canvasHandles.onStartDrawingTouch}
           onTouchEnd={canvasHandles.onFinishDrawing}
           onTouchMove={canvasHandles.onDrawingTouch}
-          width={properties.width}
-          height={properties.height}
         />
-        <Image src={image} ref={refs.imageRef} width={properties.width} height={properties.height} />
+        <Image src={image} ref={refs.imageRef} alt="" />
+        <Border $width={properties.width} $height={properties.height} ref={refs.borderRef} />
       </Zoom>
 
       { ['brush', 'eraser'].includes(tool) && <BrushIndicator ref={refs.cursorRef} /> }

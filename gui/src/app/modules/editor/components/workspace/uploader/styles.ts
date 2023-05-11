@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import { lighten, transparentize } from 'polished';
+import { darken, lighten, transparentize } from 'polished';
 
 export const Container = styled.div`
   flex: 1;
@@ -37,6 +37,29 @@ export const Container = styled.div`
   &.dragging-over {
     background-color: ${({ theme }) => lighten(0.1, theme.colors.background)};
     color: ${({ theme }) => transparentize(0.3, theme.colors.textBackground)};
+  }
+`;
+
+export const Text = styled.span`
+  font-size: 22px;
+  font-weight: 600;
+  color: ${({ theme }) => transparentize(0.5, theme.colors.textBackground)};
+`;
+
+export const Button = styled.button`
+  border: none;
+  padding: 10px 20px;
+  border-radius: ${({ theme }) => theme.metrics.radius};
+  font-size: 16px;
+  font-weight: 600;
+  color: ${({ theme }) => theme.colors.textBackground};
+  background-color: ${({ theme }) => theme.colors.primary};
+  transition: all 0.2s ease-in-out;
+  z-index: 5;
+  cursor: pointer;
+
+  &:hover {
+    background-color: ${({ theme }) => darken(0.1, theme.colors.primary)};
   }
 `;
 

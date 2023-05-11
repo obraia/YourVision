@@ -73,6 +73,9 @@ export const Zoom = React.forwardRef((props: Props, ref: any) => {
       onUpdate={onZoomUpdate}
       draggableUnZoomed={false}
       inertiaFriction={0}
+      verticalPadding={0}
+      horizontalPadding={0}
+      ref={ref}
       enabled={enabled}>
         <Content ref={contentRef}>
           {props.children}

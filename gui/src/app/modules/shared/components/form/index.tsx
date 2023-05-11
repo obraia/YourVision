@@ -34,6 +34,8 @@ export interface Field<T> {
 
   textareaOptions?: {
     maxLength: number;
+    autoCorrect?: 'on' | 'off';
+    autoCapitalize?: 'on' | 'off';
     defaultValue?: string;
     onChange?: (value: string) => void;
   }

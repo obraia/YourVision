@@ -8,7 +8,8 @@ import { Properties } from '../../pages/editor/controller';
 import { propertiesActions } from '../../../../../infrastructure/redux/reducers/properties';
 import { Field, Form, FormRef } from '../../../shared/components/form';
 import { useSdService } from '../../../../../infrastructure/services/sd.service';
-import { Button, ButtonText, Container, Gutter, PropertiesWrapper } from './styles';
+import { Button, ButtonText, ButtonWrapper, Container, Gutter, PropertiesWrapper } from './styles';
+import { Extras } from './extras';
 
 interface Props {
   disableSubmit?: boolean;
@@ -210,7 +211,9 @@ const Properties = (props: Props) => {
       type: 'textarea',
       width: `100%`,
       textareaOptions: {
-        maxLength: 200,
+        maxLength: 300,
+        autoCorrect: 'off',
+        autoCapitalize: 'off',
         defaultValue: properties.positive,
       }
     },
@@ -220,7 +223,9 @@ const Properties = (props: Props) => {
       type: 'textarea',
       width: `100%`,
       textareaOptions: {
-        maxLength: 200,
+        maxLength: 300,
+        autoCorrect: 'off',
+        autoCapitalize: 'off',
         defaultValue: properties.negative,
       }
     },
@@ -235,13 +240,17 @@ const Properties = (props: Props) => {
     <Container>
       <Gutter onMouseDown={resizer} />
 
+      <Extras />
+
       <PropertiesWrapper>
         <Form fields={fields} ref={formRef} onChange={values => dispatch(propertiesActions.setProperties(values))}/>
       </PropertiesWrapper>
 
-      <Button onClick={handleSubmit} disabled={loading || !image} $progress={progress.current / progress.total * 100}>
-        <ButtonText>GENERATE</ButtonText>
-      </Button>
+      <ButtonWrapper>
+        <Button onClick={handleSubmit} disabled={loading || !image} $progress={progress.current / progress.total * 100}>
+          <ButtonText>GENERATE</ButtonText>
+        </Button>
+      </ButtonWrapper>
     </Container>
   )
 }

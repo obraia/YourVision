@@ -1,6 +1,8 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef } from 'react';
 import { FaUpload } from 'react-icons/fa';
-import { Container, Input } from './styles'
+import { useDispatch } from 'react-redux';
+import { propertiesActions } from '../../../../../../infrastructure/redux/reducers/properties';
+import { Button, Container, Input, Text } from './styles';
 
 interface Props {
   onUpload?: (image: File) => void;
@@ -9,6 +11,22 @@ interface Props {
 export const Uploader: React.FC<Props> = (props) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const dispatch = useDispatch();
+
+  const loadEmptyImage = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    dispatch(propertiesActions.setCurrent(0));
+    dispatch(propertiesActions.setImage('empty'));
+    dispatch(propertiesActions.setResults([{ 
+      id: 0,
+      image: 'empty',
+      embedding: 'empty',
+      properties_id: 0,
+    }]));
+  }
 
   useEffect(() => {
     const { current: container } = containerRef;
@@ -54,7 +72,9 @@ export const Uploader: React.FC<Props> = (props) => {
   return (
     <Container ref={containerRef}>
       <FaUpload size={72} />
-      Upload your image
+      <Text>Upload your image</Text>
+      <Text>or</Text>
+      <Button onMouseDownCapture={loadEmptyImage}>Create a new image</Button>
       <Input ref={inputRef} />
     </Container>
   )

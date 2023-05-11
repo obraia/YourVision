@@ -28,7 +28,7 @@ class ImageModel(db.Model):
             'embedding': self.embedding,
             'properties_id': self.properties_id,
             'created_at': self.created_at,
-            'properties': self.properties.to_json()
+            'properties': self.properties.to_json() if self.properties else None
         }
     
     @classmethod
@@ -54,9 +54,12 @@ class ImageModel(db.Model):
     
     @classmethod
     def find_with_pagination(cls, page, per_page):
-        images = cls.query.paginate(page, per_page, False)
-        if images:
-            return images
+        result = (
+            cls.query.order_by(ImageModel.created_at.desc()).paginate(page=page, per_page=per_page, error_out=False)
+        )
+        
+        if result:
+            return result
         return None
     
     @classmethod

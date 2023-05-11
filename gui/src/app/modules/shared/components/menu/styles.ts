@@ -49,7 +49,7 @@ export const MenuItem = styled.button`
   font-size: 16px;
   white-space: nowrap;
   text-decoration: none;
-  background-color: ${({ theme }) => theme.colors.background};
+  background-color: ${({ theme }) => lighten(0.12, theme.colors.background)};
   color: ${({ theme }) => theme.colors.textBackground};
   overflow: hidden;
   cursor: pointer;

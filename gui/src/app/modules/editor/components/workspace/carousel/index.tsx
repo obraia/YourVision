@@ -17,14 +17,24 @@ export const Carousel = () => {
 
   const renderImages = () => {
     return results.map((result) => {
-      const image = result.image.startsWith('data') ? result.image : `${process.env.REACT_APP_API_URL}/static/images/${result.image}`;
+      let image: string | null = '';
+
+      if(result.image === 'empty') {
+        image = null;
+      } else if (result.image.startsWith('data:image')) {
+        image = result.image;
+      } else {
+        image = `${process.env.REACT_APP_API_URL}/static/images/${result.image}`;
+      }
+
+      console.log({ current, result })
 
       return (
         <ImageContainer 
           key={result.id} 
           selected={result.id === current}
           onClick={() => handleSelect(result)}>
-          <img src={image} alt={result.id.toString()} />
+          {image && <img src={image} alt={result.id.toString()} />}
         </ImageContainer>
       )
     })

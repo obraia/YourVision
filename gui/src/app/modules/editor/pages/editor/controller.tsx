@@ -41,7 +41,6 @@ function useEditorPageController() {
     const formData = new FormData();
     formData.append('image', file);
     
-
     const reader = new FileReader();
 
     reader.onload = (e) => {
@@ -69,16 +68,26 @@ function useEditorPageController() {
     const image = await editor.getImage();
     const mask = await editor.getMask();
 
-    if(!image || !mask) return;
-
     dispatch(propertiesActions.setLoading(true));
 
-    sdService.inpaint({ image, mask, properties }).then((result) => {
-      dispatch(propertiesActions.appendResults(result));
-    }).finally(() => {
+    if(image && mask) {
+      sdService.inpaint({ image, mask, properties }).then((result) => {
+        dispatch(propertiesActions.appendResults(result));
+      }).finally(() => {
+        dispatch(propertiesActions.setLoading(false));
+        dispatch(propertiesActions.setProgress(0));
+      });
+    } else if(image) {
+      // TODO: Implement image to image
       dispatch(propertiesActions.setLoading(false));
-      dispatch(propertiesActions.setProgress(0));
-    });
+    } else {
+      sdService.textToImage({ properties }).then((result) => {
+        dispatch(propertiesActions.appendResults(result));
+      }).finally(() => {
+        dispatch(propertiesActions.setLoading(false));
+        dispatch(propertiesActions.setProgress(0));
+      });
+    }
   }
 
   useEffect(() => {

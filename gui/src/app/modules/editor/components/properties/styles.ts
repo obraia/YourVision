@@ -3,20 +3,20 @@ import { darken, desaturate, lighten, transparentize } from 'polished';
 import { Scroll } from '../../../shared/components/layout/scroll';
 
 export const Container = styled.aside`
-  width: 340px;
+  width: 400px;
   min-width: 240px;
   max-width: 1000px;
-  height: 100%;
   position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding-top: 5px;
+  display: grid;
+  grid-template: 'extras form'
+                 'extras button';
+  grid-template-rows: 1fr min-content;
+  row-gap: 10px;
   background-color: ${({ theme }) => lighten(0.08, theme.colors.background)};
-  overflow: hidden;
 
   @media (max-width: ${({ theme }) => theme.metrics.tablet_medium}) {
     width: 100%;
+    height: 40%;
   }
 
   @media (max-width: ${({ theme }) => theme.metrics.desktop_small}) {
@@ -26,6 +26,7 @@ export const Container = styled.aside`
 `;
 
 export const PropertiesWrapper = styled(Scroll)`
+  grid-area: form;
   height: 100%;
   display: flex;
   border-bottom: 1px solid ${({ theme }) => transparentize(0.8, theme.colors.textBackground)};
@@ -45,7 +46,15 @@ export const Gutter = styled.div`
   }
 `;
 
+export const ButtonWrapper = styled.div`
+  grid-area: button;
+  width: 100%;
+  height: fit-content;
+  display: flex;
+`;
+
 export const Button = styled.button<{ $progress: number }>`
+  width: 100%;
   min-height: 45px;
   max-height: 45px;
   position: relative;

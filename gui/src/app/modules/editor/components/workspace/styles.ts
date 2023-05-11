@@ -1,6 +1,6 @@
 import styled from 'styled-components'
 
-export const Container = styled.main`
+export const Container = styled.div`
   flex: 1;
   width: 512px;
   display: flex;
@@ -11,6 +11,7 @@ export const Container = styled.main`
 
   @media (max-width: ${({ theme }) => theme.metrics.desktop_small}) {
     width: 100%;
+    height: calc(60% - 60px);
     padding: 5px;
   }
 `

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { ChangeEvent, useEffect } from 'react';
 import { AiOutlineInfoCircle } from 'react-icons/ai';
 import { IoIosArrowDown } from 'react-icons/io';
 import { mask } from 'remask';
@@ -32,9 +32,9 @@ interface Props {
 export const Select: React.FC<Props> = (props) => {
   const [isOpen, setIsOpen] = React.useState(false);
 
-  const ref = React.useRef<HTMLInputElement>(null);
+  const inputRef = React.useRef<HTMLInputElement>(null);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (props.masks) {
       e.currentTarget.value = mask(e.currentTarget.value, props.masks);
     }
@@ -47,15 +47,33 @@ export const Select: React.FC<Props> = (props) => {
   const handleSelect = (value: string | number) => {
     setIsOpen(false);
 
-    if (ref.current) {
-      ref.current.focus();
-      ref.current.value = value.toString();
+    if (inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.value = value.toString();
     }
+
+    handleChange({
+      currentTarget: {
+        value: value.toString(),
+      }
+    }  as ChangeEvent<HTMLInputElement>)
   };
 
   const toggleOptions = React.useCallback(() => {
     setIsOpen(!isOpen);
   }, [isOpen]);
+
+  useEffect(() => {
+    if(props.properties.defaultValue && inputRef.current) {
+      inputRef.current.value = props.properties.defaultValue.toString()
+      
+      handleChange({ 
+        currentTarget: { 
+          value: props.properties.defaultValue.toString() 
+        } 
+      } as ChangeEvent<HTMLInputElement>)
+    }
+  }, [props.properties.defaultValue])
 
   return (
     <>
@@ -70,7 +88,7 @@ export const Select: React.FC<Props> = (props) => {
         <InputWrapper>
           <Input
             {...props.properties}
-            ref={ref}
+            ref={inputRef}
             error={props.error}
             onChange={handleChange}
             onClick={toggleOptions}

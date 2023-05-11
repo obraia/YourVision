@@ -60,7 +60,7 @@ const stock = createSlice({
       if(result) {
         state.current = result.id;
         state.embedding = result.embedding;
-        state.image = result.image.startsWith('data') ? result.image : `${process.env.REACT_APP_API_URL}/static/images/${result.image}`;
+        state.image = (result.image.startsWith('data') || result.image === 'empty') ? result.image : `${process.env.REACT_APP_API_URL}/static/images/${result.image}`;
       } else {
         state.current = 0;
         state.image = '';
@@ -79,9 +79,13 @@ const stock = createSlice({
       state.progress = { current: 0, total: 0 };
     },
     setImage(state, action: PayloadAction<string>) {
-      if(action.payload) {
-        state.image = action.payload.startsWith('data') ? action.payload : `${process.env.REACT_APP_API_URL}/static/images/${action.payload}`;
-      } else {
+      if(action.payload.startsWith('data')) {
+        state.image = action.payload;
+      } else if (action.payload === 'empty') {
+        state.image = action.payload;
+      } else if(action.payload) {
+        state.image = `${process.env.REACT_APP_API_URL}/static/images/${action.payload}`;
+      }  else {
         state.image = '';
       }
     },
@@ -102,6 +106,23 @@ const stock = createSlice({
       
       if(index !== -1) {
         state.results.splice(index, 1);
+
+        if(action.payload === state.current) {
+          const result = state.results[index] || state.results[state.results.length - 1];
+
+          if(result) {
+            state.current = result.id;
+            state.embedding = result.embedding;
+            state.image = (result.image.startsWith('data') || result.image === 'empty') ? result.image : `${process.env.REACT_APP_API_URL}/static/images/${result.image}`;
+          } else {
+            state.current = 0;
+            state.image = '';
+            state.embedding = '';
+            state.results = new Array<ImageResult>();
+            state.loading = false;
+            state.progress = { current: 0, total: 0 };
+          }
+        }
       }
     },
     setLoading(state, action: PayloadAction<boolean>) {
@@ -116,8 +137,8 @@ const stock = createSlice({
       state.properties.images = action.payload.images;
       state.properties.steps = action.payload.steps;
       state.properties.cfg = action.payload.cfg;
-      state.properties.width = action.payload.width;
-      state.properties.height = action.payload.height;
+      state.properties.width = action.payload.width || 1;
+      state.properties.height = action.payload.height || 1;
       state.properties.sampler = action.payload.sampler;
       state.properties.seed = action.payload.seed;
       state.properties.positive = action.payload.positive;
@@ -130,10 +151,10 @@ const stock = createSlice({
       state.samplers = action.payload;
     },
     setWidth(state, action: PayloadAction<number>) {
-      state.properties.width = action.payload;
+      state.properties.width = action.payload || 1;
     },
     setHeight(state, action: PayloadAction<number>) {
-      state.properties.height = action.payload;
+      state.properties.height = action.payload || 1;
     },
     setSeed(state, action: PayloadAction<number>) {
       state.properties.seed = action.payload;

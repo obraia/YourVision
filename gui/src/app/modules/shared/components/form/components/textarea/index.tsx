@@ -1,4 +1,4 @@
-import React, { TextareaHTMLAttributes } from 'react';
+import React, { ChangeEvent, TextareaHTMLAttributes, useEffect } from 'react';
 import { AiOutlineInfoCircle } from 'react-icons/ai';
 import { Container, TextAreaStyle, Label, Legend, Counter } from './styles';
 
@@ -10,15 +10,28 @@ interface Props {
 }
 
 export const TextArea: React.FC<Props> = (props) => {
+  const textareaRef = React.createRef<HTMLTextAreaElement>();
   const [length, setLength] = React.useState(0);
 
-  const handle_change = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setLength(e.target.value.length);
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setLength(e.currentTarget.value.length);
 
     if (props.properties.onChange) {
       props.properties.onChange(e);
     }
   };
+
+  useEffect(() => {
+    if(props.properties.defaultValue && textareaRef.current) {
+      textareaRef.current.value = props.properties.defaultValue.toString()
+      
+      handleChange({ 
+        currentTarget: { 
+          value: props.properties.defaultValue.toString() 
+        } 
+      } as ChangeEvent<HTMLTextAreaElement>)
+    }
+  }, [props.properties.defaultValue, textareaRef, handleChange])
 
   return (
     <Container width={props.width}>
@@ -29,7 +42,7 @@ export const TextArea: React.FC<Props> = (props) => {
         </Label>
       )}
 
-      <TextAreaStyle {...props.properties} error={props.error} onChange={handle_change} />
+      <TextAreaStyle {...props.properties} error={props.error} onChange={handleChange} ref={textareaRef} />
       
       <Counter>
         {length}/{props.properties.maxLength}

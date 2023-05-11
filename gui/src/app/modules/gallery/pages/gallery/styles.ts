@@ -5,6 +5,7 @@ export const Container = styled(Scroll)`
   flex: 1;
   width: 100%;
   display: flex;
+  flex-direction: column;
   background-color: ${({ theme }) => theme.colors.background};
   overflow-y: auto;
 

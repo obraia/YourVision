@@ -35,9 +35,7 @@ export const ImageContainer = styled.div<{ selected?: boolean }>`
   }
 
   ${({ selected, theme }) => selected && css`
-    img {
       border: 4px solid ${theme.colors.primary};
-    }
   `}
 
   @media (max-width: ${({ theme }) => theme.metrics.tablet_medium}) {
@@ -47,9 +45,7 @@ export const ImageContainer = styled.div<{ selected?: boolean }>`
     max-height: 50px;
 
     ${({ selected, theme }) => selected && css`
-      img {
         border: 2px solid ${theme.colors.primary};
-      }
     `}
   }
 `;

@@ -134,6 +134,8 @@ function useFormController<T>(props: Props<T>, ref: ForwardedRef<FormRef<T>>) {
             disabled: field.disabled,
             required: field.required,
             maxLength: field.textareaOptions.maxLength,
+            autoCorrect: field.textareaOptions.autoCorrect,
+            autoCapitalize: field.textareaOptions.autoCapitalize,
             defaultValue: field.textareaOptions.defaultValue,
             onChange: (event) => handleChangeText(event, field.textareaOptions?.onChange),
           }} />

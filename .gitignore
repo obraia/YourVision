@@ -12,6 +12,10 @@ api/static/embeddings/*
 api/static/images/*
 
 api/weights/sam/*
+api/weights/sd/*.ckpt
+api/weights/sd/*.safetensors
 api/weights/sd/difussers/*
 
 api/infra/database/data.db
+
+scripts/*.sh
