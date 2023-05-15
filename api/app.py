@@ -52,8 +52,8 @@ def run_plugins_before():
     if(method != 'POST'):
         return
 
-    plugins_data = body.get('plugins', [])
     body = request.get_json()
+    plugins_data = body.get('plugins', [])
 
     if plugins_data.count == 0:
         return
