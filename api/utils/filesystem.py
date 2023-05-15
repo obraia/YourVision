@@ -15,7 +15,8 @@ class FilesystemUtils:
       os.makedirs(path, exist_ok=True)
 
   def rm(path):
-      os.remove(path)
+      if os.path.exists(path):
+          os.remove(path)
 
   def rmdir(path):
       os.rmdir(path)

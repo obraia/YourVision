@@ -7,7 +7,6 @@ export const Container = styled.div`
   flex-direction: column;
   gap: 5px;
   padding: 10px;
-  margin-top: 10px;
   margin-inline: -5px;
   border-top: 1px solid ${({ theme }) => transparentize(0.8, theme.colors.textBackground)};
 `;

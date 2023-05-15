@@ -18,7 +18,12 @@ export const ImagesSection = styled.section`
   width: 100%;
   height: fit-content;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 10px;
   padding: 10px;
+
+
+  @media (max-width: ${({ theme }) => theme.metrics.tablet_small}) {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  }
 `;

@@ -3,10 +3,10 @@ import { darken, transparentize } from 'polished';
 
 export const Container = styled.div<{ isDragging?: Boolean }>`
   width: 100%;
-  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
+  margin-top: auto;
   padding: 10px;
   gap: 20px;
   background-color: ${({ theme }) => transparentize(0.2, theme.colors.background)};

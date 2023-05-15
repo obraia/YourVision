@@ -1,34 +1,33 @@
-import styled from 'styled-components';
 import { lighten } from 'polished';
+import styled, { css } from 'styled-components';
 
-export const Container = styled.label.attrs({
-  type: 'button',
-})<{ $active: boolean, width: string }>`
-  width: ${({ width }) => width};
+export const Container = styled.label<{ $active?: boolean }>`
+  width: 100%;
   height: 100%;
   position: relative;
   display: flex;
   align-items: center;
   gap: 5px;
-  margin-block: 7.5px;
-  padding-inline: 5px;
   white-space: nowrap;
   font-size: 14px;
   font-weight: 600;
-  background-color: transparent;
   color: ${({ theme }) => theme.colors.textBackground};
   transition: 0.2s;
   cursor: pointer;
 
   &::before {
     content: '';
-    width: 40px;
-    height: 20px;
+    height: 15px;
+    aspect-ratio: 2;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 10px;
-    background-color: ${({ theme }) => lighten(0.12, theme.colors.background)};
+    border-radius: 5px;
+    background-color: ${({ theme }) => lighten(0.05, theme.colors.background)};
+
+    ${({ $active }) => $active && css`
+      background-color: ${({ theme }) => theme.colors.primary};
+    `}
   }
 
   &::after {
@@ -39,23 +38,13 @@ export const Container = styled.label.attrs({
     align-items: center;
     justify-content: center;
     position: absolute;
-    left: 7px;
-    border-radius: 100%;
+    left: 2px;
+    border-radius: 4px;
     background-color: ${({ theme }) => theme.colors.textPrimary};
     transition: 0.2s;
-  }
 
-  &:has(input:checked) {
-    &::before {
-      background-color: ${({ theme }) => theme.colors.primary};
-    }
-
-    &::after {
+    ${({ $active }) => $active && css`
       transform: translateX(calc(100% + 2px));
-    }
+    `}
   }
-`;
-
-export const Input = styled.input.attrs({ type: 'checkbox' })`
-  display: none;
-`;
+`

@@ -21,7 +21,7 @@ export const Label = styled.label`
 
 export const TextAreaStyle = styled.textarea<{ error?: boolean }>`
   width: 100%;
-  height: 110px;
+  min-height: 120px;
   border: 0;
   padding: 10px;
   font-size: 14px;

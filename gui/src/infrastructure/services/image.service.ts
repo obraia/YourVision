@@ -37,6 +37,7 @@ export const useImageService = () => {
   const axios = useAxios('/images');
   
   const [images, setImages] = useState<ImageData[]>([]);
+  
   const [pagination, setPagination] = useState({
     page: 1,
     pages: 1,
@@ -60,13 +61,13 @@ export const useImageService = () => {
 
   const prevImages = () => {
     if (pagination.has_prev) {
-      getImages({ page: pagination.page - 1, per_page: 20 });
+      getImages({ page: pagination.page - 1, per_page: 30 });
     }
   }
 
   const nextImages = () => {
     if (pagination.has_next) {
-      getImages({ page: pagination.page + 1, per_page: 20 });
+      getImages({ page: pagination.page + 1, per_page: 30 });
     }
   }
 
@@ -75,7 +76,7 @@ export const useImageService = () => {
   }
 
   useEffect(() => {
-    getImages({ page: 1, per_page: 20 });
+    getImages({ page: 1, per_page: 30 });
   }, []);
 
   return {

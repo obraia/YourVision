@@ -60,7 +60,7 @@ function useEditorPageController() {
     reader.readAsDataURL(file);
   }
 
-  const onSubmit = async (properties: Properties) => {
+  const onSubmit = async (properties: Properties, plugins: object[]) => {
     const { current: editor } = editorRef;
 
     if(!editor) return;
@@ -71,7 +71,7 @@ function useEditorPageController() {
     dispatch(propertiesActions.setLoading(true));
 
     if(image && mask) {
-      sdService.inpaint({ image, mask, properties }).then((result) => {
+      sdService.inpaint({ image, mask, properties, plugins }).then((result) => {
         dispatch(propertiesActions.appendResults(result));
       }).finally(() => {
         dispatch(propertiesActions.setLoading(false));
@@ -81,7 +81,7 @@ function useEditorPageController() {
       // TODO: Implement image to image
       dispatch(propertiesActions.setLoading(false));
     } else {
-      sdService.textToImage({ properties }).then((result) => {
+      sdService.textToImage({ properties, plugins }).then((result) => {
         dispatch(propertiesActions.appendResults(result));
       }).finally(() => {
         dispatch(propertiesActions.setLoading(false));

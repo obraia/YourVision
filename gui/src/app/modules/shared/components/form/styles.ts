@@ -9,5 +9,5 @@ export const Container = styled.form`
   flex-wrap: wrap;
   align-items: flex-end;
   padding: 5px;
-  overflow: hidden;
+  row-gap: 10px;
 `;

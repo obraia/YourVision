@@ -1,4 +1,4 @@
-import { useAxios } from '../../app/modules/shared/hooks/useAxios'
+import { useAxios } from '../../app/modules/shared/hooks/useAxios';
 
 interface Properties {
   model: string;
@@ -16,11 +16,13 @@ interface Properties {
 interface InpaintRequest {
   image: string;
   mask: string;
-  properties: Properties
+  properties: Properties;
+  plugins: object[];
 }
 
 interface TextToImageRequest {
-  properties: Properties
+  properties: Properties;
+  plugins: object[];
 }
 
 interface ImageResponse {

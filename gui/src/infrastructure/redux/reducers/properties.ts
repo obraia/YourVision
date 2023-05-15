@@ -1,11 +1,19 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import { Properties } from '../../../app/modules/editor/pages/editor/controller';
+import { Field } from '../../../app/modules/shared/components/form';
 
 export interface ImageResult {
   id: number;
   image: string;
   embedding: string;
   properties_id: number;
+}
+
+export interface PluginProperties {
+  name: string;
+  type: string;
+  properties: object;
+  fields: Field<any>[];
 }
 
 export interface PropertiesState {
@@ -18,6 +26,7 @@ export interface PropertiesState {
   models: string[];
   samplers: { label: string, value: string }[];
   properties: Properties;
+  pluginProperties: PluginProperties[];
 }
 
 const stock = createSlice({
@@ -26,11 +35,11 @@ const stock = createSlice({
     current: 0,
     image: '',
     embedding: '',
-    results: new Array<ImageResult>(),
+    results: [],
     loading: false,
     progress: { current: 0, total: 0 },
-    models: new Array<string>(),
-    samplers: new Array<{ label: string, value: string }>(),
+    models:[],
+    samplers: [],
     properties: {
       model: 'select a model',
       images: 1,
@@ -42,7 +51,8 @@ const stock = createSlice({
       seed: -1,
       positive: '',
       negative: '',
-    }
+    },
+    pluginProperties: [],
   } as PropertiesState,
   reducers: {
     setCurrent(state, action: PayloadAction<number>) {
@@ -161,6 +171,29 @@ const stock = createSlice({
     },
     generateRandomSeed(state) {
       state.properties.seed = Math.floor(1000000000 + Math.random() * 9000000000);
+    },
+    addPlugin(state, action: PayloadAction<{ name: string, type: string, properties: object, fields: Field<any>[] }>) {
+      const index = state.pluginProperties.findIndex((plugin) => plugin.name === action.payload.name);
+
+      if(index === -1) {
+        state.pluginProperties.push(action.payload);
+      } else {
+        state.pluginProperties[index] = action.payload;
+      } 
+    },
+    removePlugin(state, action: PayloadAction<string>) {
+      const index = state.pluginProperties.findIndex((plugin) => plugin.name === action.payload);
+
+      if(index !== -1) {
+        state.pluginProperties.splice(index, 1);
+      }
+    },
+    setPluginProperties(state, action: PayloadAction<{ name: string, properties: object }>) {
+      const index = state.pluginProperties.findIndex((plugin) => plugin.name === action.payload.name);
+
+      if(index !== -1) {
+        state.pluginProperties[index].properties = action.payload.properties;
+      }
     }
   },
 });

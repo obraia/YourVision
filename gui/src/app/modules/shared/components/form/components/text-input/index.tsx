@@ -26,18 +26,6 @@ const TextInput: React.FC<Props> = (props) => {
     }
   }, [props]);
 
-  useEffect(() => {
-    if(props.properties.defaultValue && inputRef.current) {
-      inputRef.current.value = props.properties.defaultValue.toString()
-      
-      handleChange({ 
-        currentTarget: { 
-          value: props.properties.defaultValue.toString() 
-        } 
-      } as ChangeEvent<HTMLInputElement>)
-    }
-  }, [props.properties.defaultValue, inputRef, handleChange])
-
   return (
     <Container width={props.width}>
       {props.label && (

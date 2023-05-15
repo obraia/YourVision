@@ -29,10 +29,16 @@ export const PropertiesIndicator = styled.div`
   width: 0; 
   height: 0;
   position: absolute;
-  right: 5px;
+  left: 5px;
   bottom: 5px;
+  rotate: 45deg;
   border-left: 4px solid transparent;
   border-right: 4px solid transparent;
   border-top: 4px solid ${({ theme }) => theme.colors.textBackground};
-  rotate: -45deg;
+
+  @media (max-width: ${({ theme }) => theme.metrics.desktop_small}) {
+    left: auto;
+    right: 5px;
+    rotate: -45deg;
+  }
 `;

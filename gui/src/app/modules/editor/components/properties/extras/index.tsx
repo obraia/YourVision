@@ -1,18 +1,26 @@
 import { useState } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { BiExtension } from 'react-icons/bi';
 import { RiArrowDropLeftLine, RiArrowDropRightLine } from 'react-icons/ri';
-import { MdContentPaste, MdPhotoFilter, MdTranslate } from 'react-icons/md';
+import { MdContentPaste } from 'react-icons/md';
 import { propertiesActions } from '../../../../../../infrastructure/redux/reducers/properties';
 import { tryParserJSON } from '../../../../shared/utils/formatters/json.formatter';
 import { Properties } from '../../../pages/editor/controller';
+import { usePluginService } from '../../../../../../infrastructure/services/plugin.service';
+import { RootState } from '../../../../../../infrastructure/redux/store';
+import { Field } from '../../../../shared/components/form';
 import { Tool, ToolButton } from './extra-button';
+import { Property } from './extra-button/properties';
 import { Container, ToogleButton } from './styles'
 
 const Extras = () => {
+  const { pluginProperties } = useSelector((state: RootState) => state.properties);
+
   const [isExpanded, setIsExpanded] = useState(false);
 
   const dispatch = useDispatch();
+
+  const { plugins, getPlugins } = usePluginService();
 
   const toggle = () => {
     setIsExpanded(!isExpanded);
@@ -33,19 +41,53 @@ const Extras = () => {
       },
     },
     {
-      name: 'Filters',
-      icon: MdPhotoFilter,
-      onClick() { },
-    },
-    {
-      name: 'Translate prompts',
-      icon: MdTranslate,
-      onClick() { },
-    },
-    {
       name: 'Plugins',
       icon: BiExtension,
       onClick() { },
+      properties: [
+        {
+          label: 'Reload plugins',
+          type: 'button',
+          buttonOptions: {
+            color: 'textPrimary',
+            backgroundColor: 'primary',
+            onClick: getPlugins,
+          }
+        },
+        ...plugins.map(plugin => {
+          return {
+            label: plugin.name,
+            type: 'toggle',
+            toggleOptions: {
+              defaultValue: pluginProperties.some(property => property.name === plugin.name),
+              onChange(value) {
+                if(value) {
+                  const properties = {} as any;
+
+                  plugin.fields.forEach(field => {
+                    if(field.name) { 
+                      properties[field.name] = field.defaultValue;
+                    }
+                  });
+
+                  const fields: Field<any>[] = [
+                    { 
+                      type: 'separator',
+                      label: plugin.name,
+                      width: '100%'
+                    },
+                    ...plugin.fields
+                  ];
+
+                  dispatch(propertiesActions.addPlugin({ name: plugin.name, type: plugin.type, properties, fields }));
+                } else {
+                  dispatch(propertiesActions.removePlugin(plugin.name));
+                }
+              }
+            }
+          }
+        }) as Property[],
+      ],
     }
   ];
 

@@ -9,5 +9,9 @@ class Cv2Utils:
       nparr = np.fromstring(base64.b64decode(image), np.uint8)
       return cv2.imdecode(nparr, cv2.IMREAD_COLOR)
   
+  def to_base64(image: str):
+      _, buffer = cv2.imencode('.jpg', image)
+      return base64.b64encode(buffer).decode('utf-8')
+
   def from_pil(image):
       return cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)

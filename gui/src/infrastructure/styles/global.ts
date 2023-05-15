@@ -22,7 +22,7 @@ const GlobalStyle = createGlobalStyle`
   }
 
   #root {
-    height: ${window.innerHeight}px;
+    height: 100vh;
     display: flex;
     flex-direction: column;
     background-color: ${({ theme }) => theme.colors.background};

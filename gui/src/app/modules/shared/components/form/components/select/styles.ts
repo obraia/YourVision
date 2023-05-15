@@ -1,5 +1,7 @@
 import styled from 'styled-components';
 import { lighten, transparentize } from 'polished';
+import { css } from 'styled-components';
+import { Scroll } from '../../../layout/scroll';
 
 export const OuterContainer = styled.div`
   width: 1000%;
@@ -89,9 +91,9 @@ export const Arrow = styled.div`
   }
 `;
 
-export const OptionsList = styled.ul`
+export const OptionsList = styled(Scroll)<{ $bottom: boolean }>`
   width: 100%;
-  max-height: 300px;
+  max-height: 260px;
   display: flex;
   position: absolute;
   flex-direction: column;
@@ -103,8 +105,11 @@ export const OptionsList = styled.ul`
   background-color: ${({ theme }) => lighten(0.1, theme.colors.background)};
   border-radius: ${({ theme }) => theme.metrics.radius};
   box-shadow: 0px 0px 10px #00000030;
-  z-index: 5;
+  overflow-y: auto;
   transition: opacity 0.2s ease-in-out;
+  z-index: 1;
+
+  ${({ $bottom }) => $bottom && css`top: unset; bottom: calc(100% + 5px);`}
 `;
 
 export const Option = styled.li`

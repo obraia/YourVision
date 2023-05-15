@@ -28,9 +28,9 @@ export const Container = styled.aside`
 export const PropertiesWrapper = styled(Scroll)`
   grid-area: form;
   height: 100%;
-  display: flex;
+  padding-bottom: 10px;
   border-bottom: 1px solid ${({ theme }) => transparentize(0.8, theme.colors.textBackground)};
-  overflow-y: auto;
+  overflow-x: auto;
 `;
 
 export const Gutter = styled.div`

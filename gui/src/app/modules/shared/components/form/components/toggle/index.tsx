@@ -1,37 +1,35 @@
-import React, { InputHTMLAttributes } from 'react';
+import { ChangeEvent, useRef } from 'react';
+import { Container, Input } from './styles';
 
-import { Container, InputGroup, Input, ToggleStyle, Label } from './styles';
-
-interface Props extends InputHTMLAttributes<HTMLInputElement> {
+interface Props {
   label?: string | null;
+  error?: string | null;
+  width: string;
+  properties: React.InputHTMLAttributes<HTMLInputElement>;
 }
 
-const Toggle: React.FC<Props> = (props) => {
-  const handle_change = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const { onChange } = props;
+const Toggle = (props: Props) => {
+  const inputRef = useRef<HTMLInputElement>(null);
 
-    event.currentTarget.value = event.currentTarget.checked ? 'true' : 'false';
+  const handleChange = () => {
+    const { current: input } = inputRef;
+    const { onChange } = props.properties;
+
+    if (!input) return;
+
+    input.value = input.value === 'true' ? 'false' : 'true';
 
     if (onChange) {
-      onChange(event);
+      onChange({ target: input } as ChangeEvent<HTMLInputElement>);
     }
   };
 
   return (
-    <Container>
-      <InputGroup>
-        <Input
-          id={props.id}
-          name={props.name}
-          type='checkbox'
-          onChange={handle_change}
-          defaultChecked={props.defaultChecked}
-        />
-        <ToggleStyle htmlFor={props.id} />
-      </InputGroup>
-      {props.label && <Label>{props.label}</Label>}
+    <Container width={props.width}>
+      <Input {...props.properties} ref={inputRef} />
+      {props.label}
     </Container>
-  );
-};
+  )
+}
 
-export { Toggle };
+export { Toggle }

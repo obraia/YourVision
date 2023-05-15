@@ -5,7 +5,7 @@ export const Container = styled.div`
   width: 160px;
   position: absolute;
   top: 0;
-  left: 50px;
+  right: 50px;
   display: flex;
   flex-direction: column;
   border-radius: 10px;
@@ -19,7 +19,8 @@ export const Container = styled.div`
   z-index: 5;
 
   @media (max-width: ${({ theme }) => theme.metrics.desktop_small}) {
-    top: 50px;
-    left: 0;
+    top: 0;
+    left: 50px;
+    right: initial;
   }
 `;

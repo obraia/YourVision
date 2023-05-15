@@ -1,9 +1,13 @@
 import styled from 'styled-components';
 import { lighten } from 'polished';
 
-export const Container = styled.label.attrs({
-  type: 'button',
-})<{ $active: boolean, width: string }>`
+export const Input = styled.input.attrs({
+  type: 'checkbox',
+})`
+  display: none;
+`;
+
+export const Container = styled.label<{ width: string }>`
   width: ${({ width }) => width};
   height: 100%;
   position: relative;
@@ -15,7 +19,6 @@ export const Container = styled.label.attrs({
   white-space: nowrap;
   font-size: 14px;
   font-weight: 600;
-  background-color: transparent;
   color: ${({ theme }) => theme.colors.textBackground};
   transition: 0.2s;
   cursor: pointer;
@@ -45,7 +48,7 @@ export const Container = styled.label.attrs({
     transition: 0.2s;
   }
 
-  &:has(input:checked) {
+  ${Input}:checked + && {
     &::before {
       background-color: ${({ theme }) => theme.colors.primary};
     }
@@ -56,6 +59,4 @@ export const Container = styled.label.attrs({
   }
 `;
 
-export const Input = styled.input.attrs({ type: 'checkbox' })`
-  display: none;
-`;
+

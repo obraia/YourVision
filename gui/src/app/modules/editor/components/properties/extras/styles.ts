@@ -20,6 +20,7 @@ export const Container = styled.div<{ $isExpanded: boolean }>`
   & > div {
     width: ${({ $isExpanded }) => $isExpanded ? '40px' : '0px'};
     height: ${({ $isExpanded }) => $isExpanded ? '40px' : '0px'};
+    overflow: ${({ $isExpanded }) => $isExpanded ? 'visible' : 'hidden'};
   }
 
   @media (max-width: ${({ theme }) => theme.metrics.desktop_small}) {
@@ -47,7 +48,7 @@ export const ToogleButton = styled.button`
   background-color: ${({ theme }) => transparentize(0.5, theme.colors.primary)};
   color: ${({ theme }) => theme.colors.textPrimary};
   font-size: 22px;
-  z-index: 1;
+  z-index: 5;
 
   @media (max-width: ${({ theme }) => theme.metrics.desktop_small}) {
     width: 20px;
@@ -56,4 +57,10 @@ export const ToogleButton = styled.button`
     right: -20px;
     transform: rotate(180deg);
   }
+`;
+
+export const SVGContainer = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
 `;

@@ -4,12 +4,13 @@ import { useFormController } from "./controller";
 import { SelectItem } from "./components";
 import { Container } from "./styles";
 
-export type InputType = 'text' | 'number' | 'textarea' | 'select' | 'action' | 'separator';
+export type InputType = 'text' | 'number' | 'textarea' | 'select' | 'range' | 'toggle' | 'action' | 'separator';
 
 export interface Field<T> {
   name?: Extract<keyof T, string>
   label?: string;
   value?: string;
+  defaultValue?: string;
   required?: boolean;
   disabled?: boolean;
   type: InputType;
@@ -45,6 +46,18 @@ export interface Field<T> {
     items: Array<SelectItem>;
   }
 
+  toggleOptions?: {
+    onChange?: (value: boolean) => void;
+  }
+
+  rangeOptions?: {
+    min: number;
+    max: number;
+    step: number;
+    defaultValue?: number;
+    onChange?: (value: number) => void;
+  }
+
   actionOptions?: {
     icon: IconType;
     onClick: () => void;
@@ -61,6 +74,7 @@ export interface FormRef<T> {
 }
 
 export interface Props<T> {
+  values?: T;
   fields: Field<T>[];
   loading?: boolean;
   onChange?: (values: T) => void;

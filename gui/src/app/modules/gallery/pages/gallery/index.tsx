@@ -69,7 +69,7 @@ export const GalleryPage = () => {
       icon: TbTrash,
       onClick() { 
         deleteImage(data.id).then(() => {
-          getImages({ page: pagination.page, per_page: 20 });
+          getImages({ page: pagination.page, per_page: 30 });
           dispatch(propertiesActions.deleteResultById(data.id));
           dispatch(contextMenuActions.hideMenu());
           handleCloseImage();

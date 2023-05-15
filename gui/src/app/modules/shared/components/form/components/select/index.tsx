@@ -31,6 +31,7 @@ interface Props {
 
 export const Select: React.FC<Props> = (props) => {
   const [isOpen, setIsOpen] = React.useState(false);
+  const [isBottom, setIsBottom] = React.useState(false);
 
   const inputRef = React.useRef<HTMLInputElement>(null);
 
@@ -64,16 +65,14 @@ export const Select: React.FC<Props> = (props) => {
   }, [isOpen]);
 
   useEffect(() => {
-    if(props.properties.defaultValue && inputRef.current) {
-      inputRef.current.value = props.properties.defaultValue.toString()
-      
-      handleChange({ 
-        currentTarget: { 
-          value: props.properties.defaultValue.toString() 
-        } 
-      } as ChangeEvent<HTMLInputElement>)
-    }
-  }, [props.properties.defaultValue])
+    const { current: input } = inputRef;
+
+    if (!input) return;
+
+    const { top, bottom } = input.getBoundingClientRect();
+
+    setIsBottom(bottom > window.innerHeight - 200);
+  }, [inputRef]);
 
   return (
     <>
@@ -99,7 +98,7 @@ export const Select: React.FC<Props> = (props) => {
           </Arrow>
 
           {isOpen && (
-            <OptionsList>
+            <OptionsList $bottom={isBottom}>
               <Scroll column="true" scroll-auto="true">
                 {props.items?.map((item, index) => (
                   <Option key={index} onClick={() => handleSelect(item.value)}>

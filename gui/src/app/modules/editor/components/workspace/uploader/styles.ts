@@ -52,7 +52,7 @@ export const Button = styled.button`
   border-radius: ${({ theme }) => theme.metrics.radius};
   font-size: 16px;
   font-weight: 600;
-  color: ${({ theme }) => theme.colors.textBackground};
+  color: ${({ theme }) => theme.colors.textPrimary};
   background-color: ${({ theme }) => theme.colors.primary};
   transition: all 0.2s ease-in-out;
   z-index: 5;

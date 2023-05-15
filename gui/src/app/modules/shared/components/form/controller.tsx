@@ -1,6 +1,6 @@
-import { ForwardedRef, useImperativeHandle, useRef } from 'react';
-import { unMask } from 'remask'
-import { NumberInput, Select, Separator, TextArea, TextInput, Action } from './components'
+import { ForwardedRef, useEffect, useImperativeHandle, useRef } from 'react';
+import { unMask } from 'remask';
+import { NumberInput, Select, Separator, TextArea, TextInput, Action, Range, Toggle } from './components';
 import { Field, FormRef, Props } from '.';
 
 function useFormController<T>(props: Props<T>, ref: ForwardedRef<FormRef<T>>) {
@@ -36,18 +36,35 @@ function useFormController<T>(props: Props<T>, ref: ForwardedRef<FormRef<T>>) {
       if(field.textOptions?.masks) {
         data[key] = unMask(data[key]);
       }
-    }          
+    }
 
     return data as T;
   }
 
+  const patchValues = (values: T) => {
+    const { current: form } = formRef;
+
+    if(!form) return;
+
+    for (const key in values) {
+      const field = props.fields.find(field => field.name === key);
+
+      if(!field) continue;
+
+      const value = values[key];
+
+      if(field.type === 'toggle') {
+        form[key].checked = value;
+      } else {
+        form[key].value = parser(String(value), field.type);
+      }
+    }
+  }
 
   const parser = (value: string, type: string) => {
     switch (type) {
       case 'number':
         return parseFloat(value)
-      case 'checkbox':
-        return value === 'true'
       default:
         return value
     }
@@ -70,6 +87,20 @@ function useFormController<T>(props: Props<T>, ref: ForwardedRef<FormRef<T>>) {
   const handleChangeNumber = (event: React.ChangeEvent<HTMLInputElement>, onChange?: (value: number) => void) => {
     if(onChange && event.target) {
       onChange(Number(event.target.value));
+    }
+
+    if(props.onChange) {
+      const data = getValues();
+
+      if(data) {
+        props.onChange(data);
+      }
+    }
+  }
+
+  const handleChangeToggle = (event: React.ChangeEvent<HTMLInputElement>, onChange?: (value: boolean) => void) => {
+    if(onChange && event.target) {
+      onChange(event.target.value === 'on');
     }
 
     if(props.onChange) {
@@ -152,10 +183,48 @@ function useFormController<T>(props: Props<T>, ref: ForwardedRef<FormRef<T>>) {
           width={field.width}
           properties={{
             name: field.name,
-            defaultValue: field.selectOptions.defaultValue,
+            defaultValue: field.defaultValue,
+            readOnly: true,
             disabled: field.disabled,
             required: field.required,
             onChange: (event) => handleChangeText(event, field.textareaOptions?.onChange),
+          }} />
+      );
+    }
+
+    if(field.type === 'toggle' && field.label) {
+      return (
+        <Toggle
+          key={index}
+          label={field.label} 
+          error={field.error}
+          width={field.width}
+          properties={{
+            name: field.name,
+            // defaultValue: field.defaultValue,
+            disabled: field.disabled,
+            required: field.required,
+            onChange: (event) => handleChangeToggle(event, field.toggleOptions?.onChange),
+          }} />
+      );
+    }
+
+    if(field.type === 'range' && field.rangeOptions) {
+      return (
+        <Range
+          key={index}
+          label={field.label} 
+          error={field.error}
+          width={field.width}
+          properties={{
+            name: field.name,
+            min: field.rangeOptions.min,
+            max: field.rangeOptions.max,
+            step: field.rangeOptions.step,
+            defaultValue: field.rangeOptions.defaultValue,
+            disabled: field.disabled,
+            required: field.required,
+            onChange: (event) => handleChangeNumber(event, field.rangeOptions?.onChange),
           }} />
       );
     }
@@ -179,6 +248,12 @@ function useFormController<T>(props: Props<T>, ref: ForwardedRef<FormRef<T>>) {
       );
     }
   }
+
+  useEffect(() => {
+    if(props.values) {
+      patchValues(props.values);
+    }
+  }, [props.values]);
   
   return {
     formRef,

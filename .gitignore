@@ -11,11 +11,16 @@ gui/node_modules/
 api/static/embeddings/*
 api/static/images/*
 
+# weights
 api/weights/sam/*
 api/weights/sd/*.ckpt
 api/weights/sd/*.safetensors
 api/weights/sd/difussers/*
 
+# data
 api/infra/database/data.db
+
+# plugins
+api/plugins/
 
 scripts/*.sh

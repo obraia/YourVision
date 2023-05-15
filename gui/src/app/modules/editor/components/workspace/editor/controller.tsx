@@ -190,21 +190,26 @@ function useController(ref: ForwardedRef<EditorRef>) {
     const { current: image } = imageRef;
     const { current: border } = borderRef;
     const { current: zoom } = zoomRef;
-    
+
     if (canvas && image && border && zoom) {
       const context = canvas.getContext('2d');
 
+      const originalImageWidth = image.naturalWidth || properties.width;
+      const originalImageHeight = image.naturalHeight || properties.height;
+
       const imageScale = Math.min(
-        properties.width / image.naturalWidth,
-        properties.height / image.naturalHeight,
+        properties.width / originalImageWidth,
+        properties.height / originalImageHeight,
       );
 
-      const imageWidth = image.naturalWidth * imageScale;
-      const imageHeight = image.naturalHeight * imageScale;
+      const imageWidth = image.width || properties.width;
+      const imageHeight = image.height || properties.height;
+      const scaleWidth = (originalImageWidth || properties.width) * imageScale;
+      const scaleHeight = (originalImageHeight || properties.height) * imageScale;
 
       if (context) {
-        const scaleX = imageWidth / (image.width);
-        const scaleY = imageHeight / (image.height);
+        const scaleX = scaleWidth / (imageWidth);
+        const scaleY = scaleHeight / (imageHeight);
         const dx = (properties.width / 2 - (canvas.width * scaleX) / 2);
         const dy = (properties.height / 2 - (canvas.height * scaleY) / 2);
 
@@ -236,8 +241,8 @@ function useController(ref: ForwardedRef<EditorRef>) {
           context.filter = tempContext.filter;
         }
 
-        image.width = imageWidth;
-        image.height = imageHeight;
+        image.width = scaleWidth;
+        image.height = scaleHeight;
       }
       
       const { parentElement } = canvas;
@@ -359,7 +364,7 @@ function useController(ref: ForwardedRef<EditorRef>) {
       cursor.style.top = `${event.nativeEvent.clientY - ((cursorSize * zoomScale) / 2) + 1}px`;
     }
 
-    if (isDrawing) {
+    if (isDrawing && event.buttons === 1) {
       const { current: canvas } = canvasRef;
 
       if (canvas) {
@@ -370,6 +375,8 @@ function useController(ref: ForwardedRef<EditorRef>) {
           context.stroke();
         }
       }
+    } else {
+      setIsDrawing(false);
     }
   }, [isDrawing, brush.size, eraser.size, tool, zoomScale])
 
@@ -428,9 +435,9 @@ function useController(ref: ForwardedRef<EditorRef>) {
   }, [isDrawing, tool])
   
   const onFinishDrawing = useCallback(() => {
-    setIsDrawing(false)
+    setIsDrawing(false);
 
-    const { current: cursor } = cursorRef
+    const { current: cursor } = cursorRef;
 
     if (cursor) {
       cursor.style.visibility = 'hidden';
@@ -438,7 +445,7 @@ function useController(ref: ForwardedRef<EditorRef>) {
   }, [])
 
   const onLeaveCanvas = useCallback(() => {
-    const { current: cursor } = cursorRef
+    const { current: cursor } = cursorRef;
 
     if (cursor) {
       cursor.style.visibility = 'hidden';

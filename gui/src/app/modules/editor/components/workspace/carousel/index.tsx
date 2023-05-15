@@ -27,8 +27,6 @@ export const Carousel = () => {
         image = `${process.env.REACT_APP_API_URL}/static/images/${result.image}`;
       }
 
-      console.log({ current, result })
-
       return (
         <ImageContainer 
           key={result.id} 

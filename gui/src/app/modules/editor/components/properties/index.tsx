@@ -4,21 +4,21 @@ import { IoReload } from 'react-icons/io5';
 import { AiOutlineLock } from 'react-icons/ai';
 import { TbArrowsRandom } from 'react-icons/tb';
 import { RootState } from '../../../../../infrastructure/redux/store';
-import { Properties } from '../../pages/editor/controller';
-import { propertiesActions } from '../../../../../infrastructure/redux/reducers/properties';
-import { Field, Form, FormRef } from '../../../shared/components/form';
+import { PluginProperties, propertiesActions } from '../../../../../infrastructure/redux/reducers/properties';
 import { useSdService } from '../../../../../infrastructure/services/sd.service';
-import { Button, ButtonText, ButtonWrapper, Container, Gutter, PropertiesWrapper } from './styles';
+import { Properties } from '../../pages/editor/controller';
+import { Field, Form, FormRef } from '../../../shared/components/form';
 import { Extras } from './extras';
+import { Button, ButtonText, ButtonWrapper, Container, Gutter, PropertiesWrapper } from './styles';
 
 interface Props {
   disableSubmit?: boolean;
-  onSubmit: (form_data: Properties) => void;
+  onSubmit: (data: Properties, pluginsData: object[]) => void;
   onCancel?: () => void;
 }
 
 const Properties = (props: Props) => {
-  const { image, models, samplers, properties, loading, progress } = useSelector((state: RootState) => state.properties);
+  const { image, models, samplers, properties, pluginProperties, loading, progress } = useSelector((state: RootState) => state.properties);
   const formRef = useRef<FormRef<Properties>>(null);
   const dispatch = useDispatch();
   const sdService = useSdService();
@@ -45,9 +45,10 @@ const Properties = (props: Props) => {
   const handleSubmit = (e: MouseEvent) => {
     if (formRef.current) {
       const data = formRef.current.submit();
+      const pluginsData = pluginProperties.map((p: PluginProperties) => ({ name: p.name, type: p.type, properties: p.properties }));
 
       if(data) {
-        props.onSubmit(data);
+        props.onSubmit(data, pluginsData);
       }
     }
   }
@@ -70,7 +71,6 @@ const Properties = (props: Props) => {
       width: 'calc(100% - 45px)',
       required: true,
       selectOptions: {
-        defaultValue: properties.model,
         items: models.map(m => ({ label: m, value: m }))
       }
     },
@@ -97,7 +97,6 @@ const Properties = (props: Props) => {
         min: 1,
         max: 1000,
         step: 1,
-        defaultValue: properties.images,
       }
     },
     {
@@ -110,7 +109,6 @@ const Properties = (props: Props) => {
         min: 1,
         max: 300,
         step: 1,
-        defaultValue: properties.steps,
       }
     },
     {
@@ -123,7 +121,6 @@ const Properties = (props: Props) => {
         min: 1,
         max: 100,
         step: 0.1,
-        defaultValue: properties.cfg,
       }
     },
     {
@@ -139,7 +136,6 @@ const Properties = (props: Props) => {
       required: true,
       numberOptions: {
         step: 8,
-        defaultValue: properties.width,
       }
     },
     {
@@ -150,7 +146,6 @@ const Properties = (props: Props) => {
       required: true,
       numberOptions: {
         step: 8,
-        defaultValue: properties.height,
       }
     },
     {
@@ -165,7 +160,6 @@ const Properties = (props: Props) => {
       width: '100%',
       required: true,
       selectOptions: {
-        defaultValue: properties.sampler,
         items: samplers
       }
     },
@@ -180,9 +174,6 @@ const Properties = (props: Props) => {
       type: 'number',
       width: `calc(100% - 90px)`,
       required: true,
-      numberOptions: {
-        defaultValue: properties.seed,
-      }
     },
     {
       type: 'action',
@@ -214,7 +205,6 @@ const Properties = (props: Props) => {
         maxLength: 300,
         autoCorrect: 'off',
         autoCapitalize: 'off',
-        defaultValue: properties.positive,
       }
     },
     {
@@ -226,7 +216,6 @@ const Properties = (props: Props) => {
         maxLength: 300,
         autoCorrect: 'off',
         autoCapitalize: 'off',
-        defaultValue: properties.negative,
       }
     },
   ];
@@ -236,6 +225,16 @@ const Properties = (props: Props) => {
     loadSamplers();
   }, []);
 
+  const renderPluginForm = (plugin: PluginProperties) => {
+    const handleChange = (values: any) => {
+      dispatch(propertiesActions.setPluginProperties({ properties: values, name: plugin.name }))
+    }
+
+    return (
+      <Form key={plugin.name} fields={plugin.fields} values={plugin.properties} onChange={handleChange} />
+    )
+  }
+
   return (
     <Container>
       <Gutter onMouseDown={resizer} />
@@ -243,7 +242,8 @@ const Properties = (props: Props) => {
       <Extras />
 
       <PropertiesWrapper>
-        <Form fields={fields} ref={formRef} onChange={values => dispatch(propertiesActions.setProperties(values))}/>
+        <Form fields={fields} values={properties} onChange={values => dispatch(propertiesActions.setProperties(values))} ref={formRef} />
+        {pluginProperties.map(renderPluginForm)}
       </PropertiesWrapper>
 
       <ButtonWrapper>

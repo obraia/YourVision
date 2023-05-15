@@ -1,4 +1,4 @@
-import React, { ChangeEvent, TextareaHTMLAttributes, useEffect } from 'react';
+import React, { TextareaHTMLAttributes } from 'react';
 import { AiOutlineInfoCircle } from 'react-icons/ai';
 import { Container, TextAreaStyle, Label, Legend, Counter } from './styles';
 
@@ -20,18 +20,6 @@ export const TextArea: React.FC<Props> = (props) => {
       props.properties.onChange(e);
     }
   };
-
-  useEffect(() => {
-    if(props.properties.defaultValue && textareaRef.current) {
-      textareaRef.current.value = props.properties.defaultValue.toString()
-      
-      handleChange({ 
-        currentTarget: { 
-          value: props.properties.defaultValue.toString() 
-        } 
-      } as ChangeEvent<HTMLTextAreaElement>)
-    }
-  }, [props.properties.defaultValue, textareaRef, handleChange])
 
   return (
     <Container width={props.width}>

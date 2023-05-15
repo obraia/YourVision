@@ -44,7 +44,6 @@ class ImageList(Resource):
         page = request.args.get('page', 1, type=int)
         per_page = request.args.get('per_page', 20, type=int)
         result = ImageModel.find_with_pagination(page, per_page)
-        print(result.items)
         items = [image.to_json() for image in result]
 
         return {

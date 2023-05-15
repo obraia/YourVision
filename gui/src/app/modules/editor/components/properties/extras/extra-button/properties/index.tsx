@@ -1,21 +1,27 @@
-import { useState } from "react";
-import { Container } from "./styles"
+import { DefaultTheme } from "styled-components";
 import { Range } from "./range";
 import { Colors } from "./colors";
 import { Button } from "./button";
-import { DefaultTheme } from "styled-components";
+import { Toggle } from "./toggle";
+import { Container } from "./styles";
 
 export interface Property {
+  name?: string;
   label: string;
-  type: 'range' | 'colors' | 'button';
+  type: 'range' | 'toggle' | 'colors' | 'button';
 
   rangeOptions?: {
     min: number;
     max: number;
     step: number;
     disabled?: boolean;
-    defaultValue: number[];
+    defaultValue: number;
     onChange: (values: number[]) => void;
+  }
+
+  toggleOptions?: {
+    defaultValue: boolean;
+    onChange: (value: boolean) => void;
   }
 
   colorOptions?: {
@@ -47,8 +53,21 @@ export const Properties = (props: Props) => {
             max: property.rangeOptions.max,
             step: property.rangeOptions.step,
             disabled: property.rangeOptions.disabled,
-            defaultValue: property.rangeOptions.defaultValue,
-            onChange: property.rangeOptions.onChange,
+            defaultValue: [property.rangeOptions.defaultValue],
+            onChange: property.rangeOptions.onChange || (() => {}),
+          }}
+        />
+      );
+    }
+
+    if(property.type === 'toggle' && property.toggleOptions) {
+      return (
+        <Toggle
+          key={index}
+          label={property.label}
+          properties={{
+            defaultValue: property.toggleOptions.defaultValue,
+            onChange: property.toggleOptions.onChange,
           }}
         />
       );

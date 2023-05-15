@@ -7,7 +7,7 @@ interface Props {
   label?: string | null;
   error?: string | null;
   width: string;
-  properties: InputHTMLAttributes<HTMLInputElement>
+  properties: InputHTMLAttributes<HTMLInputElement>;
 }
 
 const NumberInput: React.FC<Props> = (props) => {
@@ -54,18 +54,6 @@ const NumberInput: React.FC<Props> = (props) => {
       } as ChangeEvent<HTMLInputElement>)
     }
   }, [inputRef, handleChange])
-
-  useEffect(() => {
-    if(props.properties.defaultValue && inputRef.current) {
-      inputRef.current.value = props.properties.defaultValue.toString()
-      
-      handleChange({ 
-        currentTarget: { 
-          value: props.properties.defaultValue.toString() 
-        } 
-      } as ChangeEvent<HTMLInputElement>)
-    }
-  }, [props.properties.defaultValue, inputRef, handleChange])
 
   return (
     <Container width={props.width}>
