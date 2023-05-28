@@ -13,6 +13,9 @@ export interface Plugin {
   endpoint: string
 }
 
+export interface PluginParamsRequest {
+  reload?: boolean;
+}
 export interface PluginResponse {
   plugins: Plugin[];
 }
@@ -22,8 +25,8 @@ export const usePluginService = () => {
   
   const [plugins, setPlugins] = useState<Plugin[]>([]);
   
-  const getPlugins = () => {
-    axios.get<PluginResponse>('').then(({ data }) => { 
+  const getPlugins = (params?: PluginParamsRequest) => {
+    axios.get<PluginResponse>('', { params }).then(({ data }) => { 
       setPlugins(data.plugins);
     });
   }

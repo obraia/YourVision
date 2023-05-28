@@ -28,7 +28,7 @@ export const Container = styled.label.attrs({
     align-items: center;
     justify-content: center;
     border-radius: 10px;
-    background-color: ${({ theme }) => lighten(0.12, theme.colors.background)};
+    background-color: ${({ theme }) => lighten(0.12, theme.colors.textBackground)};
   }
 
   &::after {
@@ -51,7 +51,7 @@ export const Container = styled.label.attrs({
     }
 
     &::after {
-      transform: translateX(calc(100% + 2px));
+      transform: translateX(calc(100% + 4px));
     }
   }
 `;

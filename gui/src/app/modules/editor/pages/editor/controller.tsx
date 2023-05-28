@@ -78,10 +78,14 @@ function useEditorPageController() {
         dispatch(propertiesActions.setProgress(0));
       });
     } else if(image) {
-      // TODO: Implement image to image
-      dispatch(propertiesActions.setLoading(false));
+      sdService.img2img({ image, properties, plugins }).then((result) => {
+        dispatch(propertiesActions.appendResults(result));
+      }).finally(() => {
+        dispatch(propertiesActions.setLoading(false));
+        dispatch(propertiesActions.setProgress(0));
+      });
     } else {
-      sdService.textToImage({ properties, plugins }).then((result) => {
+      sdService.txt2img({ properties, plugins }).then((result) => {
         dispatch(propertiesActions.appendResults(result));
       }).finally(() => {
         dispatch(propertiesActions.setLoading(false));

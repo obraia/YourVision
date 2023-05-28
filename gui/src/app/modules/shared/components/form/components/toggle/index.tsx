@@ -1,32 +1,30 @@
-import { ChangeEvent, useRef } from 'react';
+import { InputHTMLAttributes, useCallback, useRef } from 'react';
+import { ChangeEvent } from '../../controller';
 import { Container, Input } from './styles';
 
 interface Props {
   label?: string | null;
   error?: string | null;
   width: string;
-  properties: React.InputHTMLAttributes<HTMLInputElement>;
+  properties: Omit<InputHTMLAttributes<HTMLInputElement>, 'onChange'> & {
+    onChange?: (e: ChangeEvent<boolean>) => void;
+  }
 }
 
 const Toggle = (props: Props) => {
-  const inputRef = useRef<HTMLInputElement>(null);
 
-  const handleChange = () => {
-    const { current: input } = inputRef;
+  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const { onChange } = props.properties;
-
-    if (!input) return;
-
-    input.value = input.value === 'true' ? 'false' : 'true';
+    const { currentTarget: input } = e;
 
     if (onChange) {
-      onChange({ target: input } as ChangeEvent<HTMLInputElement>);
+      onChange({ name: input.name, value: input.checked });
     }
-  };
+  }, [props]);
 
   return (
     <Container width={props.width}>
-      <Input {...props.properties} ref={inputRef} />
+      <Input {...props.properties} onChange={handleChange} />
       {props.label}
     </Container>
   )

@@ -45,12 +45,40 @@ const Properties = (props: Props) => {
   const handleSubmit = (e: MouseEvent) => {
     if (formRef.current) {
       const data = formRef.current.submit();
-      const pluginsData = pluginProperties.map((p: PluginProperties) => ({ name: p.name, type: p.type, properties: p.properties }));
+      const pluginsData = pluginProperties.map((p: PluginProperties) => ({ name: p.name, type: p.type, properties: formartFormData(p.properties) }));
 
       if(data) {
         props.onSubmit(data, pluginsData);
       }
     }
+  }
+
+  const formartFormData = (data: object) => {
+    return Object.entries(data).reduce((acc: any, [key, value]) => {
+      const keys = key.split('.');
+      const lastKey = keys.pop() as string;
+      let obj = acc;
+  
+      keys.forEach((key) => {
+        const match = key.match(/(.*)\[(\d+)\]/);
+  
+        if (match) {
+          const key = match[1];
+          const index = match[2];
+  
+          obj[key] = obj[key] || [];
+          obj[key][index] = obj[key][index] || {};
+          obj = obj[key][index];
+        } else {
+          obj[key] = obj[key] || {};
+          obj = obj[key];
+        }
+      });
+  
+      obj[lastKey] = value;
+  
+      return acc;
+    }, {});
   }
 
   const loadModels = async () => {
@@ -71,7 +99,7 @@ const Properties = (props: Props) => {
       width: 'calc(100% - 45px)',
       required: true,
       selectOptions: {
-        items: models.map(m => ({ label: m, value: m }))
+        items: models
       }
     },
     {
@@ -226,8 +254,12 @@ const Properties = (props: Props) => {
   }, []);
 
   const renderPluginForm = (plugin: PluginProperties) => {
-    const handleChange = (values: any) => {
-      dispatch(propertiesActions.setPluginProperties({ properties: values, name: plugin.name }))
+    const handleChange = (values: any, field?: Field<any>) => {
+      dispatch(propertiesActions.setPluginProperties({ properties: values, name: plugin.name }));
+
+      if (field) {
+        dispatch(propertiesActions.setPluginField({ field, name: plugin.name }));
+      }
     }
 
     return (

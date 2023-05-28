@@ -1,22 +1,20 @@
-import os
-import json
+from flask import request
 from flask_restx import Resource
-from infra.server.instance import server
-
-PLUGINS_FOLDER = os.path.join(os.getcwd(), 'api', 'plugins')
+from infra.server.plugins import load_plugins, plugins
 
 class PluginList(Resource):
     
     def get(self):
-        plugins = []
+        reload = request.args.get('reload', False, type=bool)
 
-        # Read all settings.json files from plugins folder
-        for plugin in os.listdir(PLUGINS_FOLDER):
-            plugin_path = os.path.join(PLUGINS_FOLDER, plugin)
+        if reload:
+            load_plugins()
 
-            if os.path.isdir(plugin_path):
-                settings = json.load(open(os.path.join(plugin_path, 'settings.json')))
-                settings['icon'] = open(os.path.join(plugin_path, settings['icon']), 'rb').read().decode('utf-8')
-                plugins.append(settings)
+        plugins_data = []
 
-        return { 'plugins': plugins }, 200
+        for plugin in plugins:
+            plugins_data.append(plugin['settings'])
+        
+        plugins_data.sort(key=lambda plugin: plugin['name'])
+
+        return { 'plugins': plugins_data }, 200

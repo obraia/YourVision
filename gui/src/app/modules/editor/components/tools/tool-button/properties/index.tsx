@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef } from "react";
 import { Container } from "./styles"
 import { Range } from "./range";
 import { Colors } from "./colors";
@@ -35,6 +35,7 @@ export interface Props {
 }
 
 export const Properties = (props: Props) => {
+  const containerRef = useRef<HTMLDivElement>(null);
   
   const renderProperty = (property: Property, index: number) => {
     if(property.type === 'range' && property.rangeOptions) {
@@ -86,8 +87,20 @@ export const Properties = (props: Props) => {
     e.stopPropagation();
   }
 
+  useEffect(() => {
+    const { current: container } = containerRef;
+
+    if(container) {
+      const { width, x } = container.getBoundingClientRect();
+
+      if(x + width > window.innerWidth) {
+        container.style.left = `calc(100% - ${width}px)`;
+      }
+    }
+  }, []);
+
   return (
-    <Container onClick={handleClick}>
+    <Container onClick={handleClick} ref={containerRef}>
       {props.properties.map(renderProperty)}
     </Container>
   )

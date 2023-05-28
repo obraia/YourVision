@@ -23,7 +23,7 @@ export interface PropertiesState {
   results: ImageResult[];
   loading: boolean;
   progress: { current: number, total: number };
-  models: string[];
+  models: { label: string, value: string }[];
   samplers: { label: string, value: string }[];
   properties: Properties;
   pluginProperties: PluginProperties[];
@@ -154,7 +154,7 @@ const stock = createSlice({
       state.properties.positive = action.payload.positive;
       state.properties.negative = action.payload.negative;
     },
-    setModels(state, action: PayloadAction<string[]>) {
+    setModels(state, action: PayloadAction<{ label: string, value: string }[]>) {
       state.models = action.payload;
     },
     setSamplers(state, action: PayloadAction<{ label: string, value: string }[]>) {
@@ -193,6 +193,14 @@ const stock = createSlice({
 
       if(index !== -1) {
         state.pluginProperties[index].properties = action.payload.properties;
+      }
+    },
+    setPluginField(state, action: PayloadAction<{ name: string, field: Field<any> }>) {
+      const index = state.pluginProperties.findIndex((plugin) => plugin.name === action.payload.name);
+
+      if(index !== -1) {
+        const fieldIndex = state.pluginProperties[index].fields.findIndex((field) => field.name === action.payload.field.name);
+        state.pluginProperties[index].fields[fieldIndex] = action.payload.field;
       }
     }
   },

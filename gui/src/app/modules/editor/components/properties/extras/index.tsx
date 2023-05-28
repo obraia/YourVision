@@ -51,7 +51,7 @@ const Extras = () => {
           buttonOptions: {
             color: 'textPrimary',
             backgroundColor: 'primary',
-            onClick: getPlugins,
+            onClick: () => getPlugins({ reload: true }),
           }
         },
         ...plugins.map(plugin => {

@@ -1,11 +1,11 @@
 import { lighten, transparentize } from "polished";
-import { css, styled } from "styled-components";
+import { styled } from "styled-components";
 
 export const Container = styled.div`
   width: 160px;
   position: absolute;
   top: 0;
-  left: 50px;
+  left: 45px;
   display: flex;
   flex-direction: column;
   border-radius: 10px;
@@ -19,7 +19,7 @@ export const Container = styled.div`
   z-index: 5;
 
   @media (max-width: ${({ theme }) => theme.metrics.desktop_small}) {
-    top: 50px;
+    top: 45px;
     left: 0;
   }
 `;

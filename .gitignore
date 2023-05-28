@@ -15,7 +15,7 @@ api/static/images/*
 api/weights/sam/*
 api/weights/sd/*.ckpt
 api/weights/sd/*.safetensors
-api/weights/sd/difussers/*
+api/weights/sd/diffusers/*
 
 # data
 api/infra/database/data.db

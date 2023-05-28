@@ -1,4 +1,5 @@
 from infra.database.db import db
+from utils.random import Random
 
 class ImagePropertiesModel(db.Model):
     __tablename__ = 'images_properties'
@@ -25,7 +26,7 @@ class ImagePropertiesModel(db.Model):
         self.width = width
         self.height = height
         self.sampler = sampler
-        self.seed = seed
+        self.seed = Random.seed() if seed == -1 else seed
     
     def __repr__(self):
         return f'<ImagePropertiesModel {self.id}>'

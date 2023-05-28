@@ -20,7 +20,13 @@ interface InpaintRequest {
   plugins: object[];
 }
 
-interface TextToImageRequest {
+interface TextRequest {
+  properties: Properties;
+  plugins: object[];
+}
+
+interface ImageRequest {
+  image: string;
   properties: Properties;
   plugins: object[];
 }
@@ -41,13 +47,23 @@ const useSdService = () => {
     return data;
   }
 
-  const textToImage = async (body: TextToImageRequest) => {
-    const { data } = await axios.post<ImageResponse[]>('/text-to-image', body)
+  const txt2img = async (body: TextRequest) => {
+    const { data } = await axios.post<ImageResponse[]>('/txt2img', body)
+    return data;
+  }
+
+  const img2img = async (body: ImageRequest) => {
+    const { data } = await axios.post<ImageResponse[]>('/img2img', body)
+    return data;
+  }
+
+  const pix2pix = async (body: ImageRequest) => {
+    const { data } = await axios.post<ImageResponse[]>('/pix2pix', body)
     return data;
   }
 
   const getModels = async () => {
-    const { data } = await axios.get<string[]>('/models');
+    const { data } = await axios.get<{ label: string, value: string }[]>('/models');
     return data;
   }
 
@@ -58,7 +74,9 @@ const useSdService = () => {
 
   return {
     inpaint,
-    textToImage,
+    txt2img,
+    img2img,
+    pix2pix,
     getModels,
     getSamplers,
   }

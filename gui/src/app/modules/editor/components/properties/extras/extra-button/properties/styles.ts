@@ -2,7 +2,7 @@ import { lighten, transparentize } from "polished";
 import { css, styled } from "styled-components";
 
 export const Container = styled.div`
-  width: 160px;
+  width: fit-content;
   position: absolute;
   top: 0;
   right: 50px;

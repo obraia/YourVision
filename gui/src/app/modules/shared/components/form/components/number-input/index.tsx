@@ -1,57 +1,50 @@
-import React, { ChangeEvent, InputHTMLAttributes, useCallback, useEffect } from 'react';
+import React, { InputHTMLAttributes, useCallback } from 'react';
 import { AiOutlineInfoCircle } from 'react-icons/ai';
-import { ArrowButtonBottom, ArrowButtonTop, ArrowsContainer, Container, InputStyle, Label, Legend } from './styles';
 import { IoMdArrowDropdown, IoMdArrowDropup } from 'react-icons/io';
+import { ChangeEvent } from '../../controller';
+import { ArrowButtonBottom, ArrowButtonTop, ArrowsContainer, Container, InputStyle, Label, Legend } from './styles';
 
 interface Props {
   label?: string | null;
   error?: string | null;
   width: string;
-  properties: InputHTMLAttributes<HTMLInputElement>;
+  properties: Omit<InputHTMLAttributes<HTMLInputElement>, 'onChange'> & {
+    onChange?: (e: ChangeEvent<number>) => void;
+  }
 }
 
 const NumberInput: React.FC<Props> = (props) => {
   const inputRef = React.createRef<HTMLInputElement>();
 
-  const handleChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const { onChange } = props.properties;
-    const { current: input } = inputRef;
+    const { currentTarget: input } = e;
 
     if(!input) return;
 
-    const min = Number(e.currentTarget.min || Number.MIN_SAFE_INTEGER);
-    const max = Number(e.currentTarget.max || Number.MAX_SAFE_INTEGER);
+    const min = Number(input.min || Number.MIN_SAFE_INTEGER);
+    const max = Number(input.max || Number.MAX_SAFE_INTEGER);
 
-    if(e.currentTarget.value === '') e.currentTarget.value = '';
-    else if(Number(e.currentTarget.value) < min) e.currentTarget.value = min.toString();
-    else if(Number(e.currentTarget.value) > max) e.currentTarget.value = max.toString();
+    if(input.value === '') input.value = '';
+    else if(Number(input.value) < min) input.value = min.toString();
+    else if(Number(input.value) > max) input.value = max.toString();
 
-    input.value = e.currentTarget.value;
-
-    if(!e.target) e.target = input;
-    if (onChange) onChange(e);
+    if (onChange) {
+      onChange({ name: input.name, value: Number(input.value) });
+    }
   }, [props]);
 
   const handleStep = useCallback((step: number) => {
     const { current: input } = inputRef;
 
     if(input) {
-      const value = Number(input.value) + step;
-      
-      props.properties.onChange?.({
-        currentTarget: {
-          value: value.toString(),
-          min: input.min,
-          max: input.max
-        }} as ChangeEvent<HTMLInputElement>)
+      const fractionDigits = step.toString().split('.')[1]?.length || 0;
 
+      input.value = (Number(input.value) + step).toFixed(fractionDigits);
+      
       handleChange({
-        currentTarget: {
-          value: value.toString(),
-          min: input.min,
-          max: input.max
-        }
-      } as ChangeEvent<HTMLInputElement>)
+        currentTarget: input
+      } as React.ChangeEvent<HTMLInputElement>)
     }
   }, [inputRef, handleChange])
 

@@ -1,6 +1,7 @@
-import React, { ChangeEvent, InputHTMLAttributes, useCallback, useEffect } from 'react';
+import React, { InputHTMLAttributes, useCallback } from 'react';
 import { AiOutlineInfoCircle } from 'react-icons/ai';
 import { mask } from 'remask';
+import { ChangeEvent } from '../../controller';
 import { Container, InputStyle, Label, Legend } from './styles';
 
 interface Props {
@@ -8,21 +9,23 @@ interface Props {
   label?: string | null;
   error?: string | null;
   width: string;
-  properties: InputHTMLAttributes<HTMLInputElement>
+  properties: Omit<InputHTMLAttributes<HTMLInputElement>, 'onChange'> & {
+    onChange?: (e: ChangeEvent<string>) => void;
+  }
 }
 
 const TextInput: React.FC<Props> = (props) => {
-  const inputRef = React.createRef<HTMLInputElement>();
 
-  const handleChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const { onChange } = props.properties;
+    const { currentTarget: input } = e;
 
     if (props.masks) {
-      e.currentTarget.value = mask(e.currentTarget.value, props.masks);
+      input.value = mask(input.value, props.masks);
     }
 
     if (onChange) {
-      onChange(e);
+      onChange({ name: input.name, value: input.value });
     }
   }, [props]);
 
@@ -34,7 +37,7 @@ const TextInput: React.FC<Props> = (props) => {
           {props.properties.required && <Legend>*</Legend>}
         </Label>
       )}
-      <InputStyle {...props.properties} error={Boolean(props.error)} onChange={handleChange} ref={inputRef} />
+      <InputStyle {...props.properties} error={Boolean(props.error)} onChange={handleChange} />
       {props.error && (
         <Legend>
           <AiOutlineInfoCircle />

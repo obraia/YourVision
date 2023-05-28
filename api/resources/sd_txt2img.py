@@ -3,6 +3,7 @@ from flask import request
 from flask_restx import Resource, fields
 import numpy as np
 import torch
+
 from utils.cv2 import Cv2Utils
 from utils.pillow import PillowUtils
 from utils.time import TimeUtils
@@ -36,9 +37,7 @@ properties = image_ns.model('properties', {
     'seed': fields.Integer(required=True, description='Seed')
 })
 
-item = image_ns.model('inpaint', {
-  'image': fields.String(required=True, description='Image base64'),
-  'mask': fields.String(required=True, description='Mask base64'),
+item = image_ns.model('text_to_image', {
   'properties': fields.Nested(properties, required=True, description='Properties')
 })
 
@@ -51,25 +50,29 @@ SD_WEIGHTS_FOLDER = os.path.join(WEIGHTS_FOLDER, 'sd', 'diffusers')
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-class SdInpaint(Resource):
+class SdTxt2Img(Resource):
     
     @image_ns.expect(item, validate=True)
-    @image_ns.doc('Inpaint an image')
+    @image_ns.doc('Generate an image from text')
     def post(self):
         data = request.get_json()
-        image = PillowUtils.from_base64(data.get("image"))
-        mask = PillowUtils.from_base64(data.get("mask"))
         properties = image_properties_schema.load(data.get("properties"))
         stable_diffusion = StableDiffusion(SD_WEIGHTS_FOLDER, DEVICE)
-        outputs = stable_diffusion.inpaint(image, mask, properties, lambda data: socketio.emit('progress', data))
+        outputs = stable_diffusion.txt2img(properties, lambda data: socketio.emit('progress', data))
 
+        generate_embedding = data.get("generate_embedding")
         timestamp = TimeUtils.timestamp()
         properties_id = properties.save()
         images = []
 
         for i, output in enumerate(outputs):
-            embedding = SamService.generate_embedding(Cv2Utils.from_pil(output))
-            embedding_name = f'{timestamp}_{i + 1}.npy'
+            if generate_embedding:
+              embedding = SamService.generate_embedding(Cv2Utils.from_pil(output))
+              embedding_name = f'{timestamp}_{i + 1}.npy'
+              np.save(os.path.join(EMBEDDING_FOLDER, embedding_name), embedding)
+            else:
+              embedding_name = 'empty'
+
             image_name = f'{timestamp}_{i + 1}.png'
 
             image_json = {
@@ -79,7 +82,6 @@ class SdInpaint(Resource):
                 'created_at': timestamp,
             }
 
-            np.save(os.path.join(EMBEDDING_FOLDER, embedding_name), embedding)
             output.save(os.path.join(IMAGE_FOLDER, image_name))
             image_data = image_schema.load(image_json)
             images.append(image_data)

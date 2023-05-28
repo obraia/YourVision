@@ -51,7 +51,7 @@ First, you will need python v3.10.6 and nodejs v18.16.0 with yarn.
 
 0. You will need to convert .ckpt or .safetensors checkpoints to diffusers with the following command:
 
-        $ python scripts/convert_original_stable_diffusion_to_diffusers.py --checkpoint_path "path/to/checkpoint.ckpt" --original_config_file "api/weights/sd/inferences/<inference>.yaml" --dump_path "api/weights/sd/difussers/<difussers-name>/" --device="cuda:0"
+        $ python scripts/convert_original_stable_diffusion_to_diffusers.py --checkpoint_path "path/to/checkpoint.ckpt" --original_config_file "api/weights/sd/inferences/<inference>.yaml" --dump_path "api/weights/sd/diffusers/<diffusers-name>/" --device="cuda:0"
 
 0. Now run the api with:
 

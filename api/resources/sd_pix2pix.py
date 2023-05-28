@@ -1,7 +1,10 @@
 import os
 from flask import request
 from flask_restx import Resource, fields
-from utils.image import ImageUtils
+import torch
+
+from utils.stable_diffusion import StableDiffusion
+from utils.pillow import PillowUtils
 from utils.time import TimeUtils
 
 from models.image import ImageModel
@@ -9,9 +12,6 @@ from schemas.image import ImageSchema
 from schemas.image_properties import ImagePropertiesSchema
 
 from infra.server.instance import server
-
-from services.sd import SdService
-from services.sam import SamService
 
 socketio = server.socketio
 image_ns = server.image_ns
@@ -42,16 +42,21 @@ STATIC_FOLDER = os.path.join(os.getcwd(), 'api', 'static')
 IMAGE_FOLDER = os.path.join(STATIC_FOLDER, 'images')
 EMBEDDING_FOLDER = os.path.join(STATIC_FOLDER, 'embeddings')
 
-class SdImageToImage(Resource):
+WEIGHTS_FOLDER = os.path.join(os.getcwd(), 'api', 'weights')
+SD_WEIGHTS_FOLDER = os.path.join(WEIGHTS_FOLDER, 'sd', 'diffusers')
+
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+class SdPix2Pix(Resource):
     
     @image_ns.expect(item, validate=True)
-    @image_ns.doc('Inpaint an image')
+    @image_ns.doc('Edit an image')
     def post(self):
         data = request.get_json()
-        image = ImageUtils.from_base64(data.get("image"))
-        mask = ImageUtils.from_base64(data.get("mask"))
+        image = PillowUtils.from_base64(data.get("image"))
         properties = image_properties_schema.load(data.get("properties"))
-        outputs = SdService.inpaint(image, mask, properties, lambda data: socketio.emit('progress', data))
+        stable_diffusion = StableDiffusion(SD_WEIGHTS_FOLDER, DEVICE)
+        outputs = stable_diffusion.pix2pix(image, properties, lambda data: socketio.emit('progress', data))
 
         timestamp = TimeUtils.timestamp()
         properties_id = properties.save()
@@ -62,7 +67,7 @@ class SdImageToImage(Resource):
 
             image_json = {
                 'image': image_name,
-                'embedding': None,
+                'embedding': 'empty',
                 'properties_id': properties_id,
                 'created_at': timestamp,
             }

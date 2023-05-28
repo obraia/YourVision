@@ -87,7 +87,7 @@ export const Button = styled.button<{ $progress: number }>`
     height: 100%;
     position: absolute;
     left: 0;
-    background-color: ${({ theme }) => theme.colors.primary};
+    background-color: ${({ theme }) => desaturate(0.5, theme.colors.primary)};
     z-index: 0;
   }
 `;

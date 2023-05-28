@@ -1,16 +1,6 @@
 import styled from 'styled-components';
 import { lighten, transparentize } from 'polished';
-import { css } from 'styled-components';
 import { Scroll } from '../../../layout/scroll';
-
-export const OuterContainer = styled.div`
-  width: 1000%;
-  height: 100%;
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 1;
-`;
 
 export const Container = styled.div<{ width: string }>`
   width: ${(props) => props.width};
@@ -51,7 +41,8 @@ export const Input = styled.input<{ error?: boolean }>`
   width: 100%;
   height: 35px;
   border: 0;
-  padding: 0 10px;
+  padding-left: 10px;
+  padding-right: 35px;
   font-size: 14px;
   border: 1px solid ${({ theme }) => transparentize(0.8, theme.colors.textBackground)};
   border-radius: ${({ theme }) => theme.metrics.radius};
@@ -91,14 +82,11 @@ export const Arrow = styled.div`
   }
 `;
 
-export const OptionsList = styled(Scroll)<{ $bottom: boolean }>`
-  width: 100%;
+export const OptionsList = styled(Scroll)`
   max-height: 260px;
-  display: flex;
+  display: none;
   position: absolute;
   flex-direction: column;
-  top: calc(100% + 5px);
-  left: 0;
   margin: 0;
   padding: 5px;
   list-style: none;
@@ -107,12 +95,15 @@ export const OptionsList = styled(Scroll)<{ $bottom: boolean }>`
   box-shadow: 0px 0px 10px #00000030;
   overflow-y: auto;
   transition: opacity 0.2s ease-in-out;
-  z-index: 1;
 
-  ${({ $bottom }) => $bottom && css`top: unset; bottom: calc(100% + 5px);`}
+  &.active {
+    display: flex;
+    z-index: 999;
+  }
 `;
 
 export const Option = styled.li`
+  width: 100%;
   max-height: 35px;
   min-height: 35px;
   display: flex;
@@ -127,4 +118,15 @@ export const Option = styled.li`
   &:hover {
     background-color: ${({ theme }) => theme.colors.background};
   }
+
+  &:active {
+    background-color: ${({ theme }) => theme.colors.background};
+  }
+`;
+
+export const OptionLabel = styled.span`
+  width: 100%;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
 `;

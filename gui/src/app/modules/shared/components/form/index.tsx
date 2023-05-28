@@ -4,7 +4,7 @@ import { useFormController } from "./controller";
 import { SelectItem } from "./components";
 import { Container } from "./styles";
 
-export type InputType = 'text' | 'number' | 'textarea' | 'select' | 'range' | 'toggle' | 'action' | 'separator';
+export type InputType = 'text' | 'number' | 'textarea' | 'select' | 'range' | 'toggle' | 'image' | 'group' | 'action' | 'separator';
 
 export interface Field<T> {
   name?: Extract<keyof T, string>
@@ -58,6 +58,16 @@ export interface Field<T> {
     onChange?: (value: number) => void;
   }
 
+  imageOptions?: {
+    typesAllowed?: Array<string>;
+    onChange?: (value: string) => void;
+  }
+
+  groupOptions?: {
+    count: number;
+    fields: Array<Field<T>>;
+  }
+
   actionOptions?: {
     icon: IconType;
     onClick: () => void;
@@ -77,7 +87,7 @@ export interface Props<T> {
   values?: T;
   fields: Field<T>[];
   loading?: boolean;
-  onChange?: (values: T) => void;
+  onChange?: (values: T, field?: Field<T>) => void;
 }
 
 function FormInner<T>(props: Props<T>, ref: React.ForwardedRef<FormRef<T>>) {

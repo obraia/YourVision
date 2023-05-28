@@ -1,9 +1,10 @@
 import os
 from flask import request
 from flask_restx import Resource, fields
-import numpy as np
-from utils.cv2 import Cv2Utils
-from utils.image import ImageUtils
+import torch
+
+from utils.stable_diffusion import StableDiffusion
+from utils.pillow import PillowUtils
 from utils.time import TimeUtils
 
 from models.image import ImageModel
@@ -11,9 +12,6 @@ from schemas.image import ImageSchema
 from schemas.image_properties import ImagePropertiesSchema
 
 from infra.server.instance import server
-
-from services.sd import SdService
-from services.sam import SamService
 
 socketio = server.socketio
 image_ns = server.image_ns
@@ -35,7 +33,8 @@ properties = image_ns.model('properties', {
     'seed': fields.Integer(required=True, description='Seed')
 })
 
-item = image_ns.model('text_to_image', {
+item = image_ns.model('image_to_image', {
+  'image': fields.String(required=True, description='Image base64'),
   'properties': fields.Nested(properties, required=True, description='Properties')
 })
 
@@ -43,33 +42,32 @@ STATIC_FOLDER = os.path.join(os.getcwd(), 'api', 'static')
 IMAGE_FOLDER = os.path.join(STATIC_FOLDER, 'images')
 EMBEDDING_FOLDER = os.path.join(STATIC_FOLDER, 'embeddings')
 
-class SdTextToImage(Resource):
+WEIGHTS_FOLDER = os.path.join(os.getcwd(), 'api', 'weights')
+SD_WEIGHTS_FOLDER = os.path.join(WEIGHTS_FOLDER, 'sd', 'diffusers')
+
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+class SdImg2Img(Resource):
     
     @image_ns.expect(item, validate=True)
-    @image_ns.doc('Generate an image from text')
+    @image_ns.doc('Change an image')
     def post(self):
         data = request.get_json()
+        image = PillowUtils.from_base64(data.get("image"))
         properties = image_properties_schema.load(data.get("properties"))
-        outputs = SdService.text_to_image(properties, lambda data: socketio.emit('progress', data))
+        stable_diffusion = StableDiffusion(SD_WEIGHTS_FOLDER, DEVICE)
+        outputs = stable_diffusion.img2img(image, properties, lambda data: socketio.emit('progress', data))
 
-        generate_embedding = data.get("generate_embedding")
         timestamp = TimeUtils.timestamp()
         properties_id = properties.save()
         images = []
 
         for i, output in enumerate(outputs):
-            if generate_embedding:
-              embedding = SamService.generate_embedding(Cv2Utils.from_pil(output))
-              embedding_name = f'{timestamp}_{i + 1}.npy'
-              np.save(os.path.join(EMBEDDING_FOLDER, embedding_name), embedding)
-            else:
-              embedding_name = 'empty'
-
             image_name = f'{timestamp}_{i + 1}.png'
 
             image_json = {
                 'image': image_name,
-                'embedding': embedding_name,
+                'embedding': 'empty',
                 'properties_id': properties_id,
                 'created_at': timestamp,
             }
