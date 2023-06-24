@@ -1,5 +1,5 @@
 import { DefaultTheme } from 'styled-components';
-import { Container, ContainerButton } from './styles'
+import { Container } from './styles'
 
 interface Props {
   label: string;
@@ -12,13 +12,11 @@ interface Props {
 
 const Button = (props: Props) => {
   return (
-    <Container>
-      <ContainerButton 
-        $color={props.properties.color} 
-        $backgroundColor={props.properties.backgroundColor} 
-        onClick={props.properties.onClick}>
+    <Container
+      $color={props.properties.color} 
+      $backgroundColor={props.properties.backgroundColor} 
+      onClick={props.properties.onClick}>
         {props.label}
-      </ContainerButton>
     </Container>
   )
 }

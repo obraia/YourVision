@@ -4,23 +4,37 @@ import { Range } from "./range";
 import { Colors } from "./colors";
 import { Button } from "./button";
 import { DefaultTheme } from "styled-components";
+import { AlignType, Alignment } from "./align";
+import { Select, SelectItem } from "./select";
+import { Layers } from "./layers";
 
 export interface Property {
   label: string;
-  type: 'range' | 'colors' | 'button';
+  type: 'select' | 'range' | 'colors' | 'button' | 'align' | 'layers';
+
+  selectOptions?: {
+    items: SelectItem[];
+    disabled?: boolean;
+    defaultValue: string;
+    onChange: (value: string) => void;
+  }
 
   rangeOptions?: {
     min: number;
     max: number;
     step: number;
     disabled?: boolean;
-    defaultValue: number[];
-    onChange: (values: number[]) => void;
+    defaultValue: number;
+    onChange: (values: number) => void;
   }
 
   colorOptions?: {
     defaultValue: string;
     onChange: (value: string) => void;
+  }
+
+  alignOptions?: {
+    onChange: (value: AlignType) => void;
   }
 
   buttonOptions?: {
@@ -32,12 +46,27 @@ export interface Property {
 
 export interface Props {
   properties: Property[];
+  expanded: boolean;
 }
 
 export const Properties = (props: Props) => {
   const containerRef = useRef<HTMLDivElement>(null);
   
   const renderProperty = (property: Property, index: number) => {
+    if(property.type === 'select' && property.selectOptions) {
+      return (
+        <Select
+          key={index}
+          label={property.label}
+          items={property.selectOptions.items}
+          properties={{
+            defaultValue: property.selectOptions.defaultValue,
+            onChange: property.selectOptions.onChange,
+          }}
+        />
+      );
+    }
+
     if(property.type === 'range' && property.rangeOptions) {
       return (
         <Range
@@ -68,6 +97,18 @@ export const Properties = (props: Props) => {
       );
     }
 
+    if(property.type === 'align' && property.alignOptions) {
+      return (
+        <Alignment
+          key={index}
+          label={property.label}
+          properties={{
+            onChange: property.alignOptions.onChange,
+          }}
+        />
+      );
+    }
+
     if(property.type === 'button' && property.buttonOptions) {
       return (
         <Button
@@ -79,6 +120,12 @@ export const Properties = (props: Props) => {
             onClick: property.buttonOptions.onClick,
           }}
         />
+      );
+    }
+
+    if(property.type === 'layers') {
+      return (
+        <Layers key={index} />
       );
     }
   }
@@ -100,7 +147,7 @@ export const Properties = (props: Props) => {
   }, []);
 
   return (
-    <Container onClick={handleClick} ref={containerRef}>
+    <Container onClick={handleClick} $expanded={props.expanded} ref={containerRef}>
       {props.properties.map(renderProperty)}
     </Container>
   )

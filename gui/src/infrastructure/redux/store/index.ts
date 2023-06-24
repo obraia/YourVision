@@ -7,12 +7,14 @@ import themeReducer from '../reducers/theme';
 import contextMenuReducer from '../reducers/contextmenu';
 import propertiesReducer from '../reducers/properties';
 import toolsReducer from '../reducers/tools';
+import layersReducer from '../reducers/layers';
 
 const reducers = combineReducers({
   theme: themeReducer,
   contextMenu: contextMenuReducer,
   properties: propertiesReducer,
   tools: toolsReducer,
+  layers: layersReducer
 });
 
 const persistConfig = {

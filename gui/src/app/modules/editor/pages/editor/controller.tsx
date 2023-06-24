@@ -1,10 +1,11 @@
 import { useEffect, useRef } from 'react'
 import { useDispatch } from 'react-redux';
-import { useSamService } from '../../../../../infrastructure/services/sam.service'
+import { v4 as uuidv4 } from 'uuid';
 import { useSdService } from '../../../../../infrastructure/services/sd.service';
 import { propertiesActions } from '../../../../../infrastructure/redux/reducers/properties';
 import { EditorRef } from '../../components/workspace/editor';
 import { useSocket } from '../../../shared/hooks/useSocket';
+import { Shape, layersActions } from '../../../../../infrastructure/redux/reducers/layers';
 
 export interface ImageProps {
   src?: string;
@@ -28,32 +29,47 @@ export interface Properties {
 
 function useEditorPageController() {
   const dispatch = useDispatch();
-  const samService = useSamService();
   const sdService = useSdService();
   const socket = useSocket();
   const editorRef = useRef<EditorRef>(null);
 
   const onUpload = (file: File) => {
-    if(!['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) {
-      return alert('Only png, webp and jpeg images are supported.');
+    if(!file.type.includes('image')) {
+      return alert('Only images are supported.');
     }
 
-    const formData = new FormData();
-    formData.append('image', file);
-    
     const reader = new FileReader();
 
     reader.onload = (e) => {
       if(e.target) {
-        const image = e.target.result as string;
+        const image = new Image();
 
-        samService.generateEmbedding({ image }).then(({ embedding }) => {
-          const imageResult = { id: 0, image, embedding, properties_id: 0 }
-          dispatch(propertiesActions.setSamEmbedding(embedding));
-          dispatch(propertiesActions.setResults([imageResult]));
-        });
+        image.src = e.target.result as string;
 
-        dispatch(propertiesActions.setImage(image));
+        image.onload = () => {
+          const shape: Shape = {
+            id: uuidv4(),
+            type: 'image' as const,
+            imageOptions: {
+              src: image.src,
+              width: image.width,
+              height: image.height,
+            },
+            x: 0,
+            y: 0,
+          };
+
+          dispatch(layersActions.createLayer({
+            mask: false, 
+            preview: image.src, 
+            shapes: [shape], 
+            visible: true,
+            locked: true,
+          }));
+
+          dispatch(propertiesActions.setWidth(image.width));
+          dispatch(propertiesActions.setHeight(image.height));
+        }
       }
     }
 
@@ -65,7 +81,7 @@ function useEditorPageController() {
 
     if(!editor) return;
     
-    const image = await editor.getImage();
+    const image = null // await editor.getImage();
     const mask = await editor.getMask();
 
     dispatch(propertiesActions.setLoading(true));
@@ -86,7 +102,8 @@ function useEditorPageController() {
       });
     } else {
       sdService.txt2img({ properties, plugins }).then((result) => {
-        dispatch(propertiesActions.appendResults(result));
+        const images = result.map(i => `${process.env.REACT_APP_API_URL}/static/images/${i.image}`);
+        editor.addImages(images);
       }).finally(() => {
         dispatch(propertiesActions.setLoading(false));
         dispatch(propertiesActions.setProgress(0));
@@ -98,6 +115,11 @@ function useEditorPageController() {
     socket.on('progress', ({ step, image }: any) => {
       dispatch(propertiesActions.setProgress(step));
       if(image) dispatch(propertiesActions.setImage(image));
+    });
+
+    socket.on('complete', () => {
+      dispatch(propertiesActions.setProgress(0));
+      dispatch(propertiesActions.setLoading(false));
     });
   }, []);
 

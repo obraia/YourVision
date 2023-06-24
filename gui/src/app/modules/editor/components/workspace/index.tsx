@@ -2,7 +2,6 @@ import { Editor, EditorRef } from './editor';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../../infrastructure/redux/store';
 import { Uploader } from './uploader';
-import { Carousel } from './carousel';
 import { Container } from './styles';
 
 interface Props {
@@ -11,12 +10,11 @@ interface Props {
 }
 
 const Workspace = (props: Props) => {
-  const { image } = useSelector((state: RootState) => state.properties);
+  const { layers } = useSelector((state: RootState) => state.layers);
 
   return (
     <Container>
-      { image ? <Editor ref={props.editorRef} /> : <Uploader onUpload={props.onUpload} /> }
-      <Carousel />
+      { layers.length ? <Editor ref={props.editorRef} /> : <Uploader onUpload={props.onUpload} /> }
     </Container>
   )
 }

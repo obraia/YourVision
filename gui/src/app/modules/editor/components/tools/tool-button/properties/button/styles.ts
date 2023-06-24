@@ -1,13 +1,7 @@
 import styled, { DefaultTheme } from 'styled-components';
 import { darken, lighten } from 'polished';
 
-export const Container = styled.div`
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-`;
-
-export const ContainerButton = styled.button<{ 
+export const Container = styled.button<{ 
     $backgroundColor: keyof DefaultTheme['colors'],
     $color: keyof DefaultTheme['colors'],
   }>`
@@ -17,7 +11,7 @@ export const ContainerButton = styled.button<{
   justify-content: center;
   gap: 5px;
   padding: 10px;
-  border-radius: 8px;
+  border-radius: 5px;
   font-size: 12px;
   font-weight: 600;
   background-color: ${({ theme, $backgroundColor }) => theme.colors[$backgroundColor]};

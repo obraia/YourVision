@@ -17,17 +17,42 @@ export const Label = styled.label`
   color: ${({ theme }) => theme.colors.textBackground};
 `;
 
-export const Track = styled.div`
+export const Input = styled.input.attrs({
+  type: 'range',
+})`
   width: 100%;
-  height: 6px;
+  height: 5px;
+  position: relative;
+  margin-block: 10px;
+  padding: 0;
+  border: none;
   border-radius: 4px;
   background-color: ${({ theme }) => lighten(0.12, theme.colors.background)};
-`;
+  appearance: none;
+  cursor: pointer;
 
-export const Thumb = styled.div`
-  width: 16px;
-  height: 16px;
-  border-radius: 4px;
-  border: 1px solid ${({ theme }) => transparentize(0.8, theme.colors.textBackground)};
-  background-color: ${({ theme }) => lighten(0.2, theme.colors.background)};
+  &::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 15px;
+    height: 15px;
+    border-radius: 10px;
+    background-color: ${({ theme }) => theme.colors.primary};
+    cursor: pointer;
+  }
+
+  &::-moz-range-thumb {
+    width: 15px;
+    height: 15px;
+    border-radius: 10px;
+    background-color: ${({ theme }) => theme.colors.primary};
+    cursor: pointer;
+  }
+
+  &::-ms-thumb {
+    width: 15px;
+    height: 15px;
+    border-radius: 10px;
+    background-color: ${({ theme }) => theme.colors.primary};
+    cursor: pointer;
+  }
 `;

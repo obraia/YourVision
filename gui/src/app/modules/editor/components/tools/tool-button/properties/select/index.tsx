@@ -1,23 +1,16 @@
-import React, { InputHTMLAttributes, useEffect } from 'react';
-import { AiOutlineInfoCircle } from 'react-icons/ai';
+import React, { useEffect } from 'react';
 import { IoIosArrowDown } from 'react-icons/io';
-import { mask } from 'remask';
-import { Scroll } from '../../../layout/scroll';
-import { ChangeEvent } from '../../controller';
 import {
   Arrow,
   Container,
   Input,
   InputWrapper,
   Label,
-  Legend,
   Option,
   OptionLabel,
-  OptionSearch,
-  OptionSearchInput,
   OptionsList,
-  OptionsScroll,
 } from './styles';
+import { Scroll } from '../../../../../../shared/components/layout/scroll';
 
 export interface SelectItem {
   value: string | number;
@@ -25,34 +18,27 @@ export interface SelectItem {
 }
 
 interface Props {
-  items: SelectItem[];
-  masks?: string[];
   label?: string | null;
-  error?: string | null;
-  width: string;
-  properties: Omit<InputHTMLAttributes<HTMLInputElement>, 'onChange'> & {
-    onChange?: (e: ChangeEvent<string>) => void;
+  items: SelectItem[];
+  properties: {
+    disabled?: boolean;
+    defaultValue: string;
+    onChange: (value: string) => void;
   }
 }
 
 export const Select: React.FC<Props> = (props) => {
-  const [items, setItems] = React.useState<SelectItem[]>(props.items || []);
+  const [isOpen, setIsOpen] = React.useState(false);
 
   const containerRef = React.useRef<HTMLDivElement>(null);
   const inputRef = React.useRef<HTMLInputElement>(null);
-  const searchRef = React.useRef<HTMLInputElement>(null);
   const optionsRef = React.useRef<HTMLDivElement>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { onChange } = props.properties;
-    const { currentTarget: input } = e;
-
-    if (props.masks) {
-      input.value = mask(input.value, props.masks);
-    }
 
     if (onChange) {
-      onChange({ name: input.name, value: e.currentTarget.value });
+      onChange(e.currentTarget.value);
     }
 
     toggleOptions();
@@ -66,20 +52,9 @@ export const Select: React.FC<Props> = (props) => {
 
     handleChange({
       currentTarget: {
-        name: props.properties.name,
         value: value.toString(),
       }
     } as React.ChangeEvent<HTMLInputElement>)
-  };
-
-  const handleSearch = (event: Event) => {
-    const { value } = event.target as HTMLInputElement;
-    
-    const filteredItems = props.items.filter(item => {
-      return item.label.toLowerCase().includes(value.toLowerCase());
-    });
-
-    setItems(filteredItems);
   };
 
   const setOptionsPosition = () => {
@@ -110,7 +85,7 @@ export const Select: React.FC<Props> = (props) => {
       height: optionsHeight,
     } = options.getBoundingClientRect();
 
-    if ((inputBottom + optionsHeight + 120) > window.innerHeight) {
+    if ((inputBottom + optionsHeight + 80) > window.innerHeight) {
       options.style.top = `${inputTop - optionsHeight - 5 }px`;
     } else {
       options.style.top = `${inputBottom + 5}px`;
@@ -119,31 +94,29 @@ export const Select: React.FC<Props> = (props) => {
 
   const toggleOptions = () => {
     const { current: options } = optionsRef;
+    const { current: input } = inputRef;
 
-    if (options) {
-      options.classList.toggle('active');
-      setOptionsPosition();
-    }
+    if (!options || !input) return;
+
+    options.classList.toggle('active');
+
+    setOptionsPosition();
   }
-
-  const stopPropagation = (e: MouseEvent) => {
-    e.stopPropagation();
-  };
 
   useEffect(() => {
     const { current: container } = containerRef;
     const { current: options } = optionsRef;
-    const { current: search } = searchRef;
     const { current: input } = inputRef;
 
-    if (!options || !search || !input || !container || !container.parentElement) return;
+    if (!options || !input || !container || !container.parentElement) return;
 
     const listItens = options.querySelectorAll('li');
 
     if(!listItens) return;
 
     for (const item of listItens) {
-      if(item.id) item.addEventListener('click', () => handleSelect(item.id));
+      item.addEventListener('mousedown', (e) => e.stopPropagation());
+      item.addEventListener('click', () => handleSelect(item.id));
     }
 
     document.body.appendChild(options);
@@ -160,34 +133,10 @@ export const Select: React.FC<Props> = (props) => {
       }
     };
 
-    const handleSearch = (event: Event) => {
-      const { value } = event.target as HTMLInputElement;
-      
-      for (const item of listItens) {
-        if (item.textContent?.toLowerCase().includes(value.toLowerCase())) {
-          item.classList.remove('hidden');
-        } else {
-          item.classList.add('hidden');
-        }
-      }
-
-      const hiddenItens = options.querySelectorAll('li.hidden');
-
-      if (hiddenItens.length === listItens.length) {
-        options.classList.add('empty');
-      } else {
-        options.classList.remove('empty');
-      }
-
-      setOptionsPosition();
-    }
-
     document.addEventListener('click', closeOnClickOutside);
     document.addEventListener('keydown', closeOnEscape);
     document.addEventListener('scroll', setOptionsPosition, true);
     window.addEventListener('resize', setOptionsPosition, true);
-    search.addEventListener('input', handleSearch);
-    search.addEventListener('click', stopPropagation);
 
     return () => {
       document.body.removeChild(options);
@@ -195,55 +144,41 @@ export const Select: React.FC<Props> = (props) => {
       document.removeEventListener('keydown', closeOnEscape);
       document.removeEventListener('scroll', setOptionsPosition, true);
       window.removeEventListener('resize', setOptionsPosition, true);
-      search.removeEventListener('input', handleSearch);
-      search.removeEventListener('click', stopPropagation);
     }
-
   }, []);
 
   return (
-    <Container width={props.width} ref={containerRef}>
-      {props.label && (
-        <Label>
-          {props.label}
-          {props.properties.required && <Legend>*</Legend>}
-        </Label>
-      )}
+    <Container ref={containerRef}>
+      <Label>{props.label}</Label>
+      
       <InputWrapper>
         <Input
           {...props.properties}
+          readOnly
           ref={inputRef}
-          error={props.error}
           onChange={handleChange}
           onClick={toggleOptions}
           autoComplete='off' />
 
-        <Arrow>
+        <Arrow className={isOpen ? 'active' : ''}>
           <IoIosArrowDown />
         </Arrow>
 
         <OptionsList ref={optionsRef}>
-          <OptionSearch>
-            <OptionSearchInput ref={searchRef} />
-          </OptionSearch>
+          <Scroll column="true" scroll-auto="true">
+            {/* <Option>
+                <OptionLabel>Search...</OptionLabel>
+            </Option> */}
 
-          <OptionsScroll>
-            {items.map((item) => (
+            {props.items.map((item) => (
               <Option key={item.value} id={item.value}>
                 <OptionLabel>{item.label}</OptionLabel>
               </Option>
             ))}
-          </OptionsScroll>
+          </Scroll>
         </OptionsList>
 
       </InputWrapper>
-
-      {props.error && (
-        <Legend>
-          <AiOutlineInfoCircle />
-          {props.error}
-        </Legend>
-      )}
     </Container>
   );
 };

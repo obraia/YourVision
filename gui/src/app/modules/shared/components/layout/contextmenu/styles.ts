@@ -1,6 +1,6 @@
-import styled, { css } from 'styled-components'
-import { lighten } from 'polished'
-import { Button } from '../../button/styles'
+import styled, { css } from 'styled-components';
+import { lighten } from 'polished';
+import { Button } from '../../button/styles';
 
 export const Container = styled.div<{ $xPos: number; $yPos: number }>`
   display: flex;
@@ -13,12 +13,12 @@ export const Container = styled.div<{ $xPos: number; $yPos: number }>`
   border-radius: ${({ theme }) => theme.metrics.radius};
   background-color: ${({ theme }) => lighten(0.05, theme.colors.background)};
   box-shadow: 0px 0px 10px #00000020;
+  z-index: 999;
 
-  transform: ${({ $xPos, $yPos }) =>
-    css`
-      translateX(min(${$xPos}px, calc(100vw - 100%))) 
-      translateY(min(${$yPos}px, calc(100vh - 100%)))
-    `};
+  transform: ${({ $xPos, $yPos }) => css`
+    translateX(min(${$xPos}px, calc(100vw - 100%))) 
+    translateY(min(${$yPos}px, calc(100vh - 100%)))
+  `};
 `
 
 export const MenuItems = styled.nav`

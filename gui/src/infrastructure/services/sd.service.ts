@@ -72,6 +72,11 @@ const useSdService = () => {
     return data;
   }
 
+  const getImageBase64 = async (image: string) => {
+    const { data } = await axios.get('/static/' + image, { responseType: 'arraybuffer' });
+    return  Buffer.from(data, 'binary').toString('base64');;
+  }
+
   return {
     inpaint,
     txt2img,
@@ -79,6 +84,7 @@ const useSdService = () => {
     pix2pix,
     getModels,
     getSamplers,
+    getImageBase64
   }
 }
 

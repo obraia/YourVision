@@ -7,8 +7,9 @@ export interface ImageResult {
   image: string;
   embedding: string;
   properties_id: number;
+  layerType?: 'raster' | 'object';
+  visible?: boolean;
 }
-
 export interface PluginProperties {
   name: string;
   type: string;
@@ -17,7 +18,6 @@ export interface PluginProperties {
 }
 
 export interface PropertiesState {
-  current: number;
   image: string;
   embedding: string;
   results: ImageResult[];
@@ -32,7 +32,6 @@ export interface PropertiesState {
 const stock = createSlice({
   name: 'properties',
   initialState: {
-    current: 0,
     image: '',
     embedding: '',
     results: [],
@@ -55,39 +54,6 @@ const stock = createSlice({
     pluginProperties: [],
   } as PropertiesState,
   reducers: {
-    setCurrent(state, action: PayloadAction<number>) {
-      state.current = action.payload;
-    },
-    deleteCurrent(state) {
-      const index = state.results.findIndex((result) => result.id === state.current);
-
-      if(index === -1) return;
-
-      state.results.splice(index, 1);
-
-      const result = state.results[index] || state.results[state.results.length - 1];
-
-      if(result) {
-        state.current = result.id;
-        state.embedding = result.embedding;
-        state.image = (result.image.startsWith('data') || result.image === 'empty') ? result.image : `${process.env.REACT_APP_API_URL}/static/images/${result.image}`;
-      } else {
-        state.current = 0;
-        state.image = '';
-        state.embedding = '';
-        state.results = new Array<ImageResult>();
-        state.loading = false;
-        state.progress = { current: 0, total: 0 };
-      }
-    },
-    deleteAll(state) {
-      state.current = 0;
-      state.image = '';
-      state.embedding = '';
-      state.results = new Array<ImageResult>();
-      state.loading = false;
-      state.progress = { current: 0, total: 0 };
-    },
     setImage(state, action: PayloadAction<string>) {
       if(action.payload.startsWith('data')) {
         state.image = action.payload;
@@ -110,30 +76,6 @@ const stock = createSlice({
     },
     deleteResult(state, action: PayloadAction<number>) {
       state.results.splice(action.payload, 1);
-    },
-    deleteResultById(state, action: PayloadAction<number>) {
-      const index = state.results.findIndex((result) => result.id === action.payload);
-      
-      if(index !== -1) {
-        state.results.splice(index, 1);
-
-        if(action.payload === state.current) {
-          const result = state.results[index] || state.results[state.results.length - 1];
-
-          if(result) {
-            state.current = result.id;
-            state.embedding = result.embedding;
-            state.image = (result.image.startsWith('data') || result.image === 'empty') ? result.image : `${process.env.REACT_APP_API_URL}/static/images/${result.image}`;
-          } else {
-            state.current = 0;
-            state.image = '';
-            state.embedding = '';
-            state.results = new Array<ImageResult>();
-            state.loading = false;
-            state.progress = { current: 0, total: 0 };
-          }
-        }
-      }
     },
     setLoading(state, action: PayloadAction<boolean>) {
       state.loading = action.payload;

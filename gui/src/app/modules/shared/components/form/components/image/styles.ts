@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import { transparentize } from 'polished';
+import { lighten, transparentize } from 'polished';
 
 export const Container = styled.div<{ width: string }>`
   width: ${(props) => props.width};
@@ -56,5 +56,24 @@ export const Image = styled.div<{ src: string }>`
   &:hover {
     border-color: ${({ theme }) => transparentize(0.5, theme.colors.textBackground)};
     color: ${({ theme }) => transparentize(0.25, theme.colors.textBackground)};
+  }
+
+  /* On fille drag */
+
+  &.dragover {
+    background-color: ${({ theme }) => lighten(0.1, theme.colors.background)};
+    color: ${({ theme }) => transparentize(0.3, theme.colors.textBackground)};
+    border: 1px dashed ${({ theme }) => theme.colors.primary};
+  }
+
+  /* On fille drag over */
+
+  &.dragging-over {
+    background-color: ${({ theme }) => lighten(0.1, theme.colors.background)};
+    color: ${({ theme }) => transparentize(0.3, theme.colors.textBackground)};
+  }
+
+  svg {
+    pointer-events: none;
   }
 `;

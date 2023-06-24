@@ -1,12 +1,16 @@
 import { ForwardedRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from "react"
 import { InferenceSession, Tensor } from 'onnxruntime-web';
 import { useDispatch, useSelector } from "react-redux";
+import html2canvas from 'html2canvas';
 import npyjs from 'npyjs';
+import { v4 as uuidv4 } from 'uuid';
 import { modelData } from "../../../../../../infrastructure/utils/onnx.util";
 import { onnxMaskToImage } from "../../../../../../infrastructure/utils/mask.util";
 import { RootState } from "../../../../../../infrastructure/redux/store";
 import { propertiesActions } from "../../../../../../infrastructure/redux/reducers/properties";
 import { EditorRef } from ".";
+import { toolsActions } from "../../../../../../infrastructure/redux/reducers/tools";
+import { Shape, layersActions } from "../../../../../../infrastructure/redux/reducers/layers";
 
 interface ModelScale {
   samScale: number;
@@ -17,8 +21,10 @@ interface ModelScale {
 const SAM_MODEL_PATH = '/model/sam_vit_l_0b3195.onnx';
 
 function useController(ref: ForwardedRef<EditorRef>) {
-  const { results, properties, embedding } = useSelector((state: RootState) => state.properties);
-  const { tool, mask, brush, eraser } = useSelector((state: RootState) => state.tools);
+  const { properties, embedding } = useSelector((state: RootState) => state.properties);
+  const { currentLayerIndex, layers } = useSelector((state: RootState) => state.layers);
+  const { tool, mask, brush, eraser, text } = useSelector((state: RootState) => state.tools);
+  const { theme } = useSelector((state: RootState) => state.theme);
 
   const [model, setModel] = useState<InferenceSession | null>(null);
   const [tensor, setTensor] = useState<Tensor | null>(null);
@@ -30,75 +36,97 @@ function useController(ref: ForwardedRef<EditorRef>) {
   const zoomRef = useRef<any>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
+  const shapesRef = useRef<HTMLDivElement>(null);
+  const layerRef = useRef<HTMLDivElement>(null);
   const borderRef = useRef<HTMLDivElement>(null);
   const cursorRef = useRef<HTMLDivElement>(null);
+  const shapeRef = useRef<HTMLDivElement | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const dispatch = useDispatch();
 
-  const isTouch = window.matchMedia('(hover: none)').matches;
+  const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 
   useImperativeHandle(ref, () => {
     return {
-      getImage() {
-        const { current: image } = imageRef;
+      async getMask() {
+        const layersMask = layers.filter((layer) => layer.mask && layer.image && layer.visible);
 
-        if(image && !image.src.endsWith('empty')) {
-          return imageToBase64(image.src);
-        }
-      },
-      getMask() {
-        const { current: originalCanvas } = canvasRef;
-
-        if (originalCanvas) {
-          const isCanvasEmpty = checkCanvasEmpty(originalCanvas);
-
-          if(isCanvasEmpty) return;
-
+        if(layersMask.length) {
           const canvas = document.createElement('canvas');
           const context = canvas.getContext('2d');
 
           if(context) {
-            canvas.width = originalCanvas.width;
-            canvas.height = originalCanvas.height;
-            context.drawImage(originalCanvas, 0, 0);
-    
-            context.globalCompositeOperation = 'source-in';
-            context.fillStyle = '#ffffff';
-            context.fillRect(0, 0, canvas.width, canvas.height);
-    
-            context.globalCompositeOperation = 'destination-over';
-            context.fillStyle = '#000000';
-            context.fillRect(0, 0, canvas.width, canvas.height);
-          }
-    
-          const image = canvas.toDataURL('image/png');
+            canvas.width = properties.width;
+            canvas.height = properties.height;
 
-          return imageToBase64(image);
+            for (const mask of layersMask) {
+              const image = new Image();
+
+              image.src = mask.image as string;
+
+              await new Promise((resolve) => image.onload = resolve);
+
+              context.drawImage(image, 0, 0);
+            }
+          }
+
+          return imageToBase64(canvas.toDataURL('image/png'));
         }
       },
-      saveImage() {
-        const image = this.getImage();
+      getImage() {
+        const { current: border } = borderRef;
+
+        if(border) {
+          const currentTransform = border.style.transform;
+          const currentOutlineWidth = border.style.outlineWidth;
+
+          border.style.transform = `scale(1)`;
+          border.style.outlineWidth = `${1}px`;
+
+          return new Promise<string>((resolve) => {
+            html2canvas(border, {
+              backgroundColor: null,
+              scale: 1,
+              useCORS: true,
+              width: properties.width,
+              height: properties.height,
+            }).then((canvas) => {
+              resolve(canvas.toDataURL('image/png'));
+            }).finally(() => {
+              border.style.transform = currentTransform;
+              border.style.outlineWidth = currentOutlineWidth;
+            });
+          });
+        }
+      },
+      async saveImage() {
+        const image = await this.getImage();
 
         if(image) {
-          image.then((base64) => {
-            const timestamp = new Date().getTime();
-            const link = document.createElement('a');
-            link.setAttribute('download', timestamp + '.png');
-            link.setAttribute('href', base64);
-            link.click();
-          });
+          const timestamp = new Date().getTime();
+          const link = document.createElement('a');
+          
+          link.setAttribute('download', timestamp + '.png');
+          link.setAttribute('href', image);
+          link.click();
         }
       },
-      saveMask() {
-        const mask = this.getMask();
+      async saveMask() {
+        const mask = await this.getMask();
 
         if(mask) {
-          mask.then((base64) => {
-            const link = document.createElement('a');
-            link.setAttribute('download', 'mask.png');
-            link.setAttribute('href', base64);
-            link.click();
-          });
+          const timestamp = new Date().getTime();
+          const link = document.createElement('a');
+          
+          link.setAttribute('download', timestamp + '.png');
+          link.setAttribute('href', mask);
+          link.click();
+        }
+      },
+      async addImages(images: string[]) {
+        for (const image of images) {
+          insertImage(image, false, true);
         }
       },
       clear() {
@@ -111,13 +139,81 @@ function useController(ref: ForwardedRef<EditorRef>) {
             context.clearRect(0, 0, canvas.width, canvas.height);
           }
         }
+
+        updateLayerPreview();
       },
-      delete() {
-        dispatch(propertiesActions.deleteCurrent());
-        dispatch(propertiesActions.setProgress(0));
+      align(alignment) {
+        const { current: shape } = shapeRef;
+        const { current: canvas } = canvasRef;
+
+        if(shape && canvas) {
+          let { width, height } = canvas.getBoundingClientRect();
+          let { width: shapeWidth, height: shapeHeight } = shape.getBoundingClientRect();
+
+          const scaleTransform = canvas.style.transform.match(/scale\((.*?)\)/);
+          const scale = scaleTransform ? parseFloat(scaleTransform[1]) : 1;
+
+          width = width / scale;
+          height = height / scale;
+          shapeWidth = shapeWidth / scale;
+          shapeHeight = shapeHeight / scale;
+
+          if(alignment === 'horizontal-start') {
+            shape.style.left = '0px';
+          }
+
+          if(alignment === 'horizontal-center') {
+            shape.style.left = `${(width - shapeWidth) / 2}px`;
+          }
+
+          if(alignment === 'horizontal-end') {
+            shape.style.left = `${width - shapeWidth}px`;
+          }
+
+          if(alignment === 'vertical-start') {
+            shape.style.top = '0px';
+          }
+
+          if(alignment === 'vertical-center') {
+            shape.style.top = `${(height - shapeHeight) / 2}px`;
+          }
+
+          if(alignment === 'vertical-end') {
+            shape.style.top = `${height - shapeHeight}px`;
+          }
+
+          saveShapePosition();
+        }
+      },
+      updateImage() {
+        updateImage();
+      },
+      updatePreview() {
+        const { current: layer } = layerRef;
+
+        if (layer) {
+          html2canvas(layer, {
+            backgroundColor: null,
+            scale: 0.05,
+            useCORS: true,
+          }).then((canvas) => {
+            dispatch(layersActions.setCurrentLayerPreview(canvas.toDataURL('image/png')));
+          });
+        }
+      },
+      resizeCanvas() {
+        resizeCanvas();
       },
     };
-  }, []);
+  }, [layers]);
+
+  const updateImage = useCallback(() => {
+    const { current: canvas } = canvasRef;
+
+    if(canvas && (tool === 'brush' || tool === 'eraser')) {
+      dispatch(layersActions.setCurrentLayerImage(canvas.toDataURL('image/png')));
+    }
+  }, [tool]);
 
   const checkCanvasEmpty = (canvas: HTMLCanvasElement) => {
     const context = canvas.getContext('2d');
@@ -145,6 +241,47 @@ function useController(ref: ForwardedRef<EditorRef>) {
         })
       )
     );
+  }
+
+  const insertImage = (url: string, currentLayer = false, locked = false) => {
+    const { current: shapes } = shapesRef;
+
+    if(!shapes) return;
+    
+    const image = new Image();
+    image.src = url;
+    
+    image.onload = () => {
+      const { width, height } = properties;
+      const biggerThanCanvas = image.width > width || image.height > height;
+      const proportion = image.width / image.height;
+      const shapeWidth = biggerThanCanvas ? (proportion > 1 ? width : height * proportion) : image.width;
+      const shapeHeight = biggerThanCanvas ? (proportion > 1 ? width / proportion : height) : image.height;
+
+      const shape: Shape = {
+        id: uuidv4(),
+        type: 'image' as const,
+        imageOptions: {
+          src: url,
+          width: shapeWidth,
+          height: shapeHeight,
+        },
+        x: (width - shapeWidth) / 2,
+        y: (height - shapeHeight) / 2,
+      };
+
+      if(currentLayer) {
+        dispatch(layersActions.pushShape(shape));
+      } else {
+        dispatch(layersActions.createLayer({
+          mask: false, 
+          preview: url, 
+          shapes: [shape], 
+          visible: true,
+          locked,
+        }));
+      }
+    } 
   }
 
   const initializeSamModel = useCallback(async () => {
@@ -186,92 +323,32 @@ function useController(ref: ForwardedRef<EditorRef>) {
   }
 
   const resizeCanvas = () => {
-    const { current: canvas } = canvasRef;
-    const { current: image } = imageRef;
     const { current: border } = borderRef;
-    const { current: zoom } = zoomRef;
 
-    if (canvas && image && border && zoom) {
-      const context = canvas.getContext('2d');
-
-      const originalImageWidth = image.naturalWidth || properties.width;
-      const originalImageHeight = image.naturalHeight || properties.height;
-
-      const imageScale = Math.min(
-        properties.width / originalImageWidth,
-        properties.height / originalImageHeight,
-      );
-
-      const imageWidth = image.width || properties.width;
-      const imageHeight = image.height || properties.height;
-      const scaleWidth = (originalImageWidth || properties.width) * imageScale;
-      const scaleHeight = (originalImageHeight || properties.height) * imageScale;
-
-      if (context) {
-        const scaleX = scaleWidth / (imageWidth);
-        const scaleY = scaleHeight / (imageHeight);
-        const dx = (properties.width / 2 - (canvas.width * scaleX) / 2);
-        const dy = (properties.height / 2 - (canvas.height * scaleY) / 2);
-
-        const tempCanvas = document.createElement('canvas');
-        const tempContext = tempCanvas.getContext('2d');
-
-        if(tempContext) {
-          // Copy canvas to temp canvas
-          tempCanvas.width = properties.width;
-          tempCanvas.height = properties.height;
-          tempContext.scale(scaleX, scaleY);
-          tempContext.drawImage(canvas, dx, dy);
-          tempContext.globalCompositeOperation = context.globalCompositeOperation
-          tempContext.strokeStyle = context.strokeStyle;
-          tempContext.lineWidth = context.lineWidth;
-          tempContext.lineJoin = context.lineJoin;
-          tempContext.lineCap = context.lineCap;
-          tempContext.filter = context.filter;
-          
-          // Paste temp canvas to canvas
-          canvas.width = properties.width;
-          canvas.height = properties.height;
-          context.drawImage(tempCanvas, 0, 0, properties.width, properties.height);
-          context.globalCompositeOperation = tempContext.globalCompositeOperation
-          context.strokeStyle = tempContext.strokeStyle;
-          context.lineWidth = tempContext.lineWidth;
-          context.lineJoin = tempContext.lineJoin;
-          context.lineCap = tempContext.lineCap;
-          context.filter = tempContext.filter;
-        }
-
-        image.width = scaleWidth;
-        image.height = scaleHeight;
-      }
-      
-      const { parentElement } = canvas;
+    if (border) {
+      const { parentElement } = border;
 
       if (parentElement) {
         const { width, height } = parentElement.getBoundingClientRect();
-        const scaleW = Math.min((((width / zoomScale) - 40) / (canvas.width)), 1);
-        const scaleH = Math.min((((height / zoomScale) - 40) / (canvas.height)), 1);
+        const scaleW = Math.min((((width / zoomScale) - 40) / (properties.width)), 1);
+        const scaleH = Math.min((((height / zoomScale) - 40) / (properties.height)), 1);
         const scale = Math.min(scaleW, scaleH);
         
-        canvas.style.transform = `scale(${scale})`;
-        image.style.transform = `scale(${scale})`;
         border.style.transform = `scale(${scale})`;
-        border.style.borderWidth = `${2 / scale}px`;
+        border.style.outlineWidth = `${2 / scale}px`;
 
         resetZoom();
       }
     }
   }
 
-  const onSelect = useCallback(async (event: React.MouseEvent<HTMLCanvasElement, MouseEvent>) => {
+  const onSelect = useCallback(async (offsetX: number, offsetY: number) => {
     if(tool !== 'select') return;
 
     const { current: canvas } = canvasRef;
     const { current: image } = imageRef;
 
     if (canvas && image && model && tensor && modelScale) {
-      const x = event.nativeEvent.offsetX;
-      const y = event.nativeEvent.offsetY;
       const imageScale = Math.max(image.width, image.height) / Math.max(image.naturalWidth, image.naturalHeight);
       const width = image.naturalWidth * imageScale;
       const height = image.naturalHeight * imageScale;
@@ -287,11 +364,11 @@ function useController(ref: ForwardedRef<EditorRef>) {
        * The click position is relative to the canvas, so it is necessary
        * subtract the difference between the image and the canvas
        */
-      const xCanvas = (x - diffWidth / 2) / imageScale;
-      const yCanvas = (y - diffHeight / 2) / imageScale;
+      const canvasX = (offsetX - diffWidth / 2) / imageScale;
+      const canvasY = (offsetY - diffHeight / 2) / imageScale;
 
       const feeds = modelData({
-        clicks: [{ x: xCanvas, y: yCanvas, clickType: 1 }],
+        clicks: [{ x: canvasX, y: canvasY, clickType: 1 }],
         tensor,
         modelScale,
       });
@@ -327,35 +404,216 @@ function useController(ref: ForwardedRef<EditorRef>) {
 
   }, [model, tensor, modelScale, tool, mask.color])
 
-  const onStartDrawing = useCallback(({ nativeEvent }: React.MouseEvent<HTMLCanvasElement, MouseEvent>) => {
-    if(tool !== 'brush' && tool !== 'eraser') return;
+  const onText = useCallback((clientX: number, clientY: number, offsetX: number, offsetY: number) => {
+    const { current: shapes } = shapesRef;
 
+    if(!shapes || !text.color || !text.fontFamily || !text.fontWeight || !text.size) return;
+
+    let textElement: HTMLDivElement | null = null;
+
+    for (const element of shapes.children) {
+      const rect = element.getBoundingClientRect();
+
+      if ((clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom) && element.tagName === 'H1') {
+        textElement = (element as HTMLDivElement);
+      }
+    }
+
+    const value = prompt('Enter text', textElement?.innerText);
+
+    /**
+     * If the text element exists and the value is empty, remove the text element
+     */
+    if(value === "" && textElement) {
+      dispatch(layersActions.removeShape(textElement.id));
+      shapeRef.current = null;
+      return;
+    }
+
+    /**
+     * If the text element already exists, update the text and select the text element
+     */
+    if(value && textElement) {
+      dispatch(layersActions.updateShape({ id: textElement.id, textOptions: { text: value } }));
+      shapeRef.current = textElement;
+      shapeRef.current.classList.add('selected');
+      return;
+    }
+
+    /**
+     * If the text element does not exist, create a new text element
+     */
+    if(value) {
+      const shape: Shape = {
+        id: uuidv4(),
+        type: 'text' as const,
+        textOptions: {
+          text: value,
+          color: text.color,
+          fontFamily: text.fontFamily,
+          fontWeight: text.fontWeight,
+          fontSize: text.size,
+          textAlign: 'center' as const,
+          verticalAlign: 'middle' as const,
+          lineHeight: text.size, 
+        },
+        x: offsetX,
+        y: offsetY - (text.size / 2),
+      }
+
+      dispatch(layersActions.pushShape(shape));
+
+      if(shapeRef.current) {
+        shapeRef.current.classList.remove('selected');
+      }
+    }
+
+  }, [tool, text, theme])
+
+  const selectShape = useCallback((x: number, y: number) => {
+    const { current: shapes } = shapesRef;
+
+    if(shapeRef.current) {
+      shapeRef.current.classList.remove('selected');
+    }
+
+    if (shapes) {
+      let shape: HTMLDivElement | null = null;
+
+      for (const element of shapes.children as any) {
+        const elementRect = element.getBoundingClientRect();
+
+        if (x >= elementRect.left && x <= elementRect.right && y >= elementRect.top && y <= elementRect.bottom) {
+          shape = element;
+        }
+      }
+
+      if(!shape) {
+        shapeRef.current = null;
+        return;
+      }
+
+      if(shape.tagName === 'H1') {
+        const rgb2hex = (rgb: string) => rgb ? `#${rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/)?.slice(1).map((n: string) => parseInt(n, 10).toString(16).padStart(2, '0')).join('')}` : '';
+
+        const fontFamily = shape.style.fontFamily.replace(/"/g, '');
+        const fontWeight = shape.style.fontWeight;
+        const fontSize = parseInt(shape.style.fontSize.replace('px', ''));
+        const textColor = rgb2hex(shape.style.color);
+
+        dispatch(toolsActions.setTextFontFamily(fontFamily));
+        dispatch(toolsActions.setTextFontWeight(fontWeight));
+        dispatch(toolsActions.setTextSize(fontSize));
+        dispatch(toolsActions.setTextColor(textColor));
+      } else if(shape.tagName === 'IMG') {
+      
+      }
+
+      shapeRef.current = shape;
+      shapeRef.current.classList.add('selected');
+    }
+  }, [tool])
+
+  const deleteShape = () => {
+    const { current: shapes } = shapesRef;
+
+    if (shapes && shapeRef.current) {
+      dispatch(layersActions.removeShape(shapeRef.current.id));
+      shapeRef.current = null;
+    }
+  }
+
+  const updateLayerPreview = () => {
+    const { current: layer } = layerRef;
+
+    if (layer) {
+      html2canvas(layer, {
+        backgroundColor: null,
+        scale: 0.05,
+        useCORS: true,
+
+      }).then((canvas) => {
+        dispatch(layersActions.setCurrentLayerPreview(canvas.toDataURL('image/png')));
+      });
+    }
+  }
+
+  const saveShapePosition = useCallback(() => {
+    const { current: shape } = shapeRef;
+
+    if (shape && tool === 'move') {
+      dispatch(layersActions.updateShape({
+        id: shape.id,
+        x: parseFloat(shape.style.left.replace('px', '')),
+        y: parseFloat(shape.style.top.replace('px', ''))
+      }));
+    }
+  }, [tool])
+
+  const onClick = useCallback(async (event: React.MouseEvent<HTMLCanvasElement, MouseEvent>) => {
+    const { clientX, clientY } = event;
+    const { offsetX, offsetY } = event.nativeEvent;
+
+    switch (tool) {
+      case 'select':
+        onSelect(offsetX, offsetY);
+        break;
+      case 'text':
+        onText(clientX, clientY, offsetX, offsetY);
+        break;
+    }
+  }, [tool, onSelect, onText])
+
+  const onMouseDown = useCallback((event: React.MouseEvent<HTMLCanvasElement, MouseEvent>) => {
+    if(isTouch) return;
+
+    const { clientX, clientY } = event;
+    const { offsetX, offsetY } = event.nativeEvent;
+
+    switch (tool) {
+      case 'brush':
+      case 'eraser':
+        onStartDrawing(offsetX, offsetY);
+        break;
+      case 'move':
+        selectShape(clientX, clientY);
+        break;
+      default:
+        break;
+    }
+  }, [tool])
+
+  const onStartDrawing = useCallback((offsetX: number, offsetY: number) => {
     const { current: canvas } = canvasRef;
-
-    if(nativeEvent.buttons !== 1) return;
 
     if (canvas) {
       const context = canvas.getContext('2d');
 
       if (context) {
         context.beginPath();
-        context.moveTo(nativeEvent.offsetX, nativeEvent.offsetY);
-        context.lineTo(nativeEvent.offsetX, nativeEvent.offsetY);
+        context.moveTo(offsetX, offsetY);
+        context.lineTo(offsetX, offsetY);
         context.stroke();
         setIsDrawing(true);
-
-        nativeEvent.preventDefault();
       }
    }
   }, [tool])
 
-  const onDrawing = useCallback((event: React.MouseEvent<HTMLCanvasElement, MouseEvent>) => {
+  const onMouseMove = useCallback((event: React.MouseEvent<HTMLCanvasElement, MouseEvent>) => {
     if (isTouch) return;
 
     const { current: cursor } = cursorRef;
 
     if (cursor) {
-      const cursorSize = tool === 'brush' ? brush.size : eraser.size;
+      const sizes = {
+        'brush': brush.size,
+        'eraser': eraser.size,
+        'text': text.size,
+        'select': 18,
+        'move': 18,
+      };
+
+      const cursorSize = sizes[tool];
 
       cursor.style.visibility = 'visible';
       cursor.style.width = `${cursorSize * zoomScale}px`;
@@ -364,6 +622,29 @@ function useController(ref: ForwardedRef<EditorRef>) {
       cursor.style.top = `${event.nativeEvent.clientY - ((cursorSize * zoomScale) / 2) + 1}px`;
     }
 
+    switch (tool) {
+      case 'brush':
+      case 'eraser':
+        if(isDrawing) onDrawing(event);
+        break;
+      case 'move':
+        onMoveShape(event);
+        break;
+    }
+  }, [tool, isDrawing, brush.size, eraser.size, text.size, zoomScale])
+
+  const onMoveShape = useCallback((event: React.MouseEvent<HTMLCanvasElement, MouseEvent>) => {
+    if (tool !== 'move' || event.buttons !== 1) return;
+
+    const { current: shape } = shapeRef;
+
+    if (shape) {
+      shape.style.left = `${event.nativeEvent.offsetX - (shape.offsetWidth / 2)}px`;
+      shape.style.top = `${event.nativeEvent.offsetY - (shape.offsetHeight / 2)}px`;
+    }
+  }, [tool])
+
+  const onDrawing = useCallback((event: React.MouseEvent<HTMLCanvasElement, MouseEvent>) => {
     if (isDrawing && event.buttons === 1) {
       const { current: canvas } = canvasRef;
 
@@ -378,29 +659,69 @@ function useController(ref: ForwardedRef<EditorRef>) {
     } else {
       setIsDrawing(false);
     }
-  }, [isDrawing, brush.size, eraser.size, tool, zoomScale])
+  }, [isDrawing])
 
-  const onStartDrawingTouch = useCallback(({ nativeEvent }: React.TouchEvent<HTMLCanvasElement>) => {
-    if(tool !== 'brush' && tool !== 'eraser') return;
-    
+  const onTouchStart = useCallback((e: React.TouchEvent<HTMLCanvasElement>) => {
+    e.nativeEvent.stopPropagation();
+
+    const { clientX, clientY } = e.nativeEvent.touches[0];
+
+    switch (tool) {
+      case 'brush':
+      case 'eraser':
+        onStartDrawingTouch(clientX, clientY);
+        break;
+      case 'move':
+        selectShape(clientX, clientY);
+        break;
+      default:
+        break;
+    }
+  }, [tool])
+
+  const onStartDrawingTouch = useCallback((clientX: number, clientY: number) => {
     const { current: canvas } = canvasRef
 
     if (canvas) {
       const context = canvas.getContext('2d')
       const rect = canvas.getBoundingClientRect()
-      const x = (nativeEvent.touches[0].clientX - rect.left) * (canvas.width / rect.width)
-      const y = (nativeEvent.touches[0].clientY - rect.top) * (canvas.height / rect.height)
+      const canvasX = (clientX - rect.left) * (canvas.width / rect.width)
+      const canvasY = (clientY - rect.top) * (canvas.height / rect.height)
 
       if (context) {
-        context.beginPath()
-        context.moveTo(x, y)
-        context.lineTo(x, y)
-        setIsDrawing(true)
-
-        nativeEvent.preventDefault()
+        context.beginPath();
+        context.moveTo(canvasX, canvasY);
+        context.lineTo(canvasX, canvasY);
+        setIsDrawing(true);
       }
     }
   }, [tool])
+
+  const onTouchMove = useCallback((event: React.TouchEvent<HTMLCanvasElement>) => {
+    switch (tool) {
+      case 'brush':
+      case 'eraser':
+        onDrawingTouch(event);
+        break;
+      case 'move':
+        onMoveShapeTouch(event);
+        break;
+    }
+  }, [tool, isDrawing])
+  
+  const onMoveShapeTouch = useCallback((event: React.TouchEvent<HTMLCanvasElement>) => {
+    const { current: canvas } = canvasRef
+    const { current: shape } = shapeRef;
+
+    if (shape && canvas) {
+      const rect = canvas.getBoundingClientRect()
+      const x = (event.nativeEvent.touches[0].clientX - rect.left) * (canvas.width / rect.width);
+      const y = (event.nativeEvent.touches[0].clientY - rect.top) * (canvas.height / rect.height);
+
+      shape.style.left = `${x - (shape.offsetWidth / 2)}px`;
+      shape.style.top = `${y - (shape.offsetHeight / 2)}px`;
+    }
+  }, [isDrawing])
 
   const onDrawingTouch = useCallback((event: React.TouchEvent<HTMLCanvasElement>) => {
     if (isDrawing) {
@@ -421,30 +742,50 @@ function useController(ref: ForwardedRef<EditorRef>) {
       }
 
       if(cursor) {
-        const cursorSize = tool === 'brush' ? brush.size : eraser.size
-        const x = event.touches[0].pageX
-        const y = event.touches[0].pageY
+        const sizes = {
+          'brush': brush.size,
+          'eraser': eraser.size,
+          'text': text.size,
+          'select': 18,
+          'move': 18,
+        };
+  
+        const cursorSize = sizes[tool];
+        const x = event.touches[0].pageX;
+        const y = event.touches[0].pageY;
 
-        cursor.style.visibility = 'visible'
-        cursor.style.width = `${cursorSize * zoomScale}px`
-        cursor.style.height = `${cursorSize * zoomScale}px`
-        cursor.style.left = `${x - ((cursorSize * zoomScale) / 2)}px`
-        cursor.style.top = `${y - ((cursorSize * zoomScale) / 2)}px`
+        cursor.style.visibility = 'visible';
+        cursor.style.width = `${cursorSize * zoomScale}px`;
+        cursor.style.height = `${cursorSize * zoomScale}px`;
+        cursor.style.left = `${x - ((cursorSize * zoomScale) / 2)}px`;
+        cursor.style.top = `${y - ((cursorSize * zoomScale) / 2)}px`;
       }
     }
   }, [isDrawing, tool])
+
+  const onTouchEnd = useCallback(() => {
+    switch (tool) {
+      case 'brush':
+      case 'eraser':
+        onFinishDrawing();
+        break;
+    }
+  }, [tool])
+
+  const onMouseUp = useCallback(() => {
+    switch (tool) {
+      case 'brush':
+      case 'eraser':
+        onFinishDrawing();
+        break;
+    }
+  }, [tool])
   
   const onFinishDrawing = useCallback(() => {
     setIsDrawing(false);
-
-    const { current: cursor } = cursorRef;
-
-    if (cursor) {
-      cursor.style.visibility = 'hidden';
-    }
   }, [])
 
-  const onLeaveCanvas = useCallback(() => {
+  const onMouseLeave = useCallback(() => {
     const { current: cursor } = cursorRef;
 
     if (cursor) {
@@ -464,7 +805,7 @@ function useController(ref: ForwardedRef<EditorRef>) {
   }, [])
 
   /**
-   * Resize canvas and load model scale
+   * Load model scale
    */
   useEffect(() => {
     const { current: image } = imageRef;
@@ -475,7 +816,12 @@ function useController(ref: ForwardedRef<EditorRef>) {
         loadSamModelScale();
       }
     }
+  }, [])
 
+  /**
+   * Resize canvas
+   */
+  useEffect(() => {
     window.addEventListener('resize', resizeCanvas);
 
     return () => {
@@ -488,7 +834,7 @@ function useController(ref: ForwardedRef<EditorRef>) {
    */
   useEffect(() => {    
     resizeCanvas();
-  }, [properties.width, properties.height, results])
+  }, [properties.width, properties.height])
 
   /**
    * Load the Segment Anything pre-computed embedding
@@ -500,30 +846,27 @@ function useController(ref: ForwardedRef<EditorRef>) {
   }, [embedding])
 
   /**
-   * Change mask opacity
+   * Change layer opacity
    */
   useEffect(() => {
-    const { current: canvas } = canvasRef;
+    const { current: layer } = layerRef;
 
-    if (canvas) {
-      canvas.style.opacity = `${mask.opacity}`;
+    if (layer) {
+      layer.style.opacity = `${mask.opacity}`;
     }
   }, [mask.opacity])
 
   /**
-   * Change mask blur
+   * Set layer opacity when layer is changed
    */
   useEffect(() => {
-    const { current: canvas } = canvasRef;
+    const { current: layer } = layerRef;
 
-    if (canvas) {
-      const context = canvas.getContext('2d');
-
-      if (context) {
-        context.filter = `drop-shadow(0 0 ${mask.blur}px ${mask.color})`;
-      }
+    if (layer) {
+      const opacity = parseFloat(layer.style.opacity) || 1;
+      dispatch(toolsActions.setMaskOpacity(opacity));
     }
-  }, [mask.blur, mask.color])
+  }, [currentLayerIndex])
 
   /**
    * Change cursor size and show it in the center of the canvas
@@ -535,7 +878,16 @@ function useController(ref: ForwardedRef<EditorRef>) {
 
     const { current: cursor } = cursorRef;
     const { current: container } = containerRef;
-    const cursorSize = tool === 'brush' ? brush.size : eraser.size;
+
+    const sizes = {
+      'brush': brush.size,
+      'eraser': eraser.size,
+      'text': text.size,
+      'select': 18,
+      'move': 18,
+    };
+
+    const cursorSize = sizes[tool];
 
     if (cursor && container) {
       const { left, top, width , height } = container.getBoundingClientRect()
@@ -545,78 +897,156 @@ function useController(ref: ForwardedRef<EditorRef>) {
       cursor.style.height = `${cursorSize * zoomScale}px`;
       cursor.style.visibility = 'visible';
     }
-
-    const { current: canvas } = canvasRef;
-
-    if (canvas) {
-      const context = canvas.getContext('2d');
-
-      if (context) {
-        context.lineWidth = cursorSize;
-      }
-    }
-  }, [brush.size, eraser.size, tool])
+  }, [brush.size, eraser.size, text.size, tool, currentLayerIndex])
 
   /**
-   * Change canvas draw mode
+   * Change shape properties
    */
   useEffect(() => {
-    const { current: canvas } = canvasRef;
+    const { current: shape } = shapeRef;
 
-    if (canvas) {
-      const context = canvas.getContext('2d');
-
-      if (context) {
-        switch (tool) {
-          case 'brush':
-            context.globalCompositeOperation = 'source-over';
-            break;
-          case 'eraser':
-            context.globalCompositeOperation = 'destination-out';
-            break;
-          case 'select':
-            context.globalCompositeOperation = 'source-over';
-            break;
-          default:
+    if(shape) {
+      dispatch(layersActions.updateShape({
+        id: shape.id,
+        textOptions: {
+          color: text.color,
+          fontSize: text.size,
+          fontWeight: text.fontWeight,
+          fontFamily: text.fontFamily,
+          lineHeight: text.size,
         }
+      }));
+    }
+
+  }, [text, tool])
+
+  /**
+   * Shortcuts
+   **/
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.ctrlKey || event.metaKey) {
+        switch (event.key) {
+        }
+      } else {
+        switch (event.key) {
+          case 'Delete':
+            deleteShape();
+            break;
+        } 
+      }
+    }
+    
+    window.addEventListener('keydown', onKeyDown);
+
+    return () => {
+      window.removeEventListener('keydown', onKeyDown);
+    }
+  }, [])
+
+  /**
+   * Update preview and shape position when mouse is up
+   */
+  useEffect(() => {
+    const { current: container } = containerRef;
+    
+    if (container) {
+
+      const onMouseUp = (e: MouseEvent) => {
+        saveShapePosition();
+        updateImage();
+      }
+
+      container.addEventListener('mouseup', onMouseUp);
+
+      return () => {
+        container.removeEventListener('mouseup', onMouseUp);
       }
     }
   }, [tool])
 
   /**
-   * Change canvas brush color
+   * File upload
    */
   useEffect(() => {
-    const { current: canvas } = canvasRef;
+    const { current: container } = containerRef;
+    const { current: shapes } = shapesRef;
+    
+    if (container && shapes) {
+      const onDragOver = (e: DragEvent) => {
+        e.preventDefault();
+      }
+  
+      const onDragEnter = (e: DragEvent) => {
+        if (e.dataTransfer) {
+          e.dataTransfer.dropEffect = 'copy';
+          container.classList.add('dragover');
+        }
+      }
 
-    if (canvas) {
-      const context = canvas.getContext('2d');
+      const onDragLeave = () => {
+        container.classList.remove('dragover');
+      }
 
-      if (context) {
-        context.strokeStyle = mask.color;
-        context.lineJoin = 'round';
-        context.lineCap = 'round';
+      const onDrop = (e: DragEvent) => {
+        e.preventDefault();
+        
+        if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]) {
+          container.classList.remove('dragover');
+
+          const file = e.dataTransfer.files[0];
+
+          console.log(file.type)
+
+          if (file.type.includes('image')) {
+            const reader = new FileReader()
+
+            reader.onload = (e) => {
+              if (e.target) {
+                insertImage(e.target.result as string, true);
+              }
+            }
+
+            reader.readAsDataURL(file);
+          }
+        }
+      }
+
+      container.addEventListener('dragover', onDragOver);
+      container.addEventListener('dragenter', onDragEnter);
+      container.addEventListener('dragleave', onDragLeave);
+      container.addEventListener('drop', onDrop);
+
+      return () => {
+        container.removeEventListener('dragover', onDragOver);
+        container.removeEventListener('dragenter', onDragEnter);
+        container.removeEventListener('dragleave', onDragLeave);
+        container.removeEventListener('drop', onDrop);
       }
     }
-  }, [mask.color])
+  }, [currentLayerIndex])
 
   return {
     refs: {
       containerRef,
       zoomRef,
       canvasRef,
-      imageRef,
+      layerRef,
       borderRef,
+      imageRef,
+      shapesRef,
       cursorRef,
+      inputRef,
     },
     canvasHandles: {
-      onSelect,
-      onStartDrawing,
-      onDrawing,
-      onStartDrawingTouch,
-      onDrawingTouch,
-      onFinishDrawing,
-      onLeaveCanvas,
+      onClick,
+      onMouseDown,
+      onMouseMove,
+      onMouseUp,
+      onTouchStart,
+      onTouchMove,
+      onTouchEnd,
+      onMouseLeave,
     },
     zoomHandles: {
       onZoomChange

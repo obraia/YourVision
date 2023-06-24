@@ -11,6 +11,7 @@ import { Image } from "../../components/image";
 import { Viewer } from "../../components/viewer";
 import { Pagination } from "../../components/pagination";
 import { Container, ImagesSection } from "./styles";
+import { layersActions } from "../../../../../infrastructure/redux/reducers/layers";
 
 export const GalleryPage = () => {
   const { images, pagination, prevImages, nextImages, getImages, deleteImage } = useImageService();
@@ -27,7 +28,7 @@ export const GalleryPage = () => {
       name: 'Send to editor',
       icon: BiPaint,
       onClick() {
-        dispatch(propertiesActions.setCurrent(data.id));
+        dispatch(layersActions.setCurrentLayerIndex(0));
         dispatch(propertiesActions.setImage(data.image));
         dispatch(propertiesActions.setSamEmbedding(data.embedding));
         dispatch(propertiesActions.setResults([data]));
@@ -70,7 +71,6 @@ export const GalleryPage = () => {
       onClick() { 
         deleteImage(data.id).then(() => {
           getImages({ page: pagination.page, per_page: 30 });
-          dispatch(propertiesActions.deleteResultById(data.id));
           dispatch(contextMenuActions.hideMenu());
           handleCloseImage();
         });

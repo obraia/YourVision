@@ -15,7 +15,7 @@ const EditorPage: React.FC = () => {
     <Fragment>
       <Tools editorRef={editorRef} />
       <Workspace onUpload={onUpload} editorRef={editorRef} />
-      <Properties onSubmit={onSubmit} />
+      <Properties onSubmit={onSubmit} editorRef={editorRef} />
     </Fragment>
   )
 }

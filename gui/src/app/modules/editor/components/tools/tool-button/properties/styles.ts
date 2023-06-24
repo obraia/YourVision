@@ -1,8 +1,8 @@
 import { lighten, transparentize } from "polished";
-import { styled } from "styled-components";
+import { css, styled } from "styled-components";
 
-export const Container = styled.div`
-  width: 160px;
+export const Container = styled.div<{ $expanded?: boolean }>`
+  width: 240px;
   position: absolute;
   top: 0;
   left: 45px;
@@ -22,4 +22,14 @@ export const Container = styled.div`
     top: 45px;
     left: 0;
   }
+
+  ${({ $expanded }) => $expanded && css`
+    width: 100%;
+    position: relative;
+    left: 0;
+    border: none;
+    border-radius: 5px;
+    padding: 5px;
+    box-shadow: none;
+  `}
 `;

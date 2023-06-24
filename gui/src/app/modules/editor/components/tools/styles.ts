@@ -1,15 +1,15 @@
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 import { lighten, transparentize } from 'polished';
 import { Scroll } from '../../../shared/components/layout/scroll';
 
-export const Container = styled.div`
-  min-width: 5px;
-  max-width: 200px;
+export const Container = styled.div<{ $expanded: boolean }>`
+  min-width: 60px;
+  max-width: 320px;
   height: 100%;
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: ${({ theme }) => theme.metrics.gap};
+  gap: 10px;
   background-color: ${({ theme }) => lighten(0.08, theme.colors.background)};
 
   @media (max-width: ${({ theme }) => theme.metrics.desktop_small}) {
@@ -21,9 +21,13 @@ export const Container = styled.div`
   @media (max-width: ${({ theme }) => theme.metrics.tablet_medium}) {
     width: 100%;
   }
+
+  ${({ $expanded }) => $expanded && css`
+    gap: 5px;
+  `}
 `;
 
-export const ToolsWrapper = styled(Scroll)`
+export const ToolsWrapper = styled(Scroll)<{ $expanded: boolean }>`
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -34,6 +38,11 @@ export const ToolsWrapper = styled(Scroll)`
   @media (max-width: ${({ theme }) => theme.metrics.desktop_small}) {
     flex-direction: row;
   }
+
+  ${({ $expanded }) => $expanded && css`
+    gap: 5px;
+    overflow-y: auto;
+  `}
 `;
 
 export const Gutter = styled.div`

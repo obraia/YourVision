@@ -28,7 +28,7 @@ export const Container = styled.label.attrs({
     align-items: center;
     justify-content: center;
     border-radius: 10px;
-    background-color: ${({ theme }) => lighten(0.12, theme.colors.textBackground)};
+    background-color: ${({ theme }) => lighten(0.12, theme.colors.background)};
   }
 
   &::after {
@@ -41,7 +41,7 @@ export const Container = styled.label.attrs({
     position: absolute;
     left: 7px;
     border-radius: 100%;
-    background-color: ${({ theme }) => theme.colors.textPrimary};
+    background-color: ${({ theme }) => theme.colors.textBackground};
     transition: 0.2s;
   }
 
@@ -52,6 +52,7 @@ export const Container = styled.label.attrs({
 
     &::after {
       transform: translateX(calc(100% + 4px));
+      background-color: ${({ theme }) => theme.colors.textPrimary};
     }
   }
 `;

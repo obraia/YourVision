@@ -1,4 +1,4 @@
-import { transparentize } from 'polished';
+import { lighten, transparentize } from 'polished';
 import styled, { css } from 'styled-components';
 
 export const Container = styled.div`
@@ -21,16 +21,22 @@ export const ColorsWrapper = styled.div`
   flex: 1;
   width: 100%;
   height: 100%;
-  display: grid;
-  gap: 5px;
-  grid-template-columns: repeat(12, 1fr);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  row-gap: 10px;
 `;
 
-export const Color = styled.button<{ $color: string, $selected: string }>`
+export const Button = styled.button<{ $selected: string }>`
+  min-width: calc((100% / 6) - 5px);
   aspect-ratio: 1;
-  border-radius: 50%;
-  border: 1px solid ${({ theme }) => transparentize(0.8, theme.colors.textBackground)};
-  background-color: ${({ $color }) => $color};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 5px;
+  font-size: 16px;
+  background-color: ${({ theme }) => lighten(0.12, theme.colors.background)};
+  color: ${({ theme }) => theme.colors.textBackground};
 
   &:hover {
     transform: scale(1.1);

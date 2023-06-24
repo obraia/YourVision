@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Properties, Property } from "./properties";
-import { Container, PropertiesIndicator } from "./styles"
+import { Container, Label, LabelContainer, PropertiesIndicator } from "./styles"
 import { IconType } from "react-icons";
 
 export interface Tool {
@@ -13,6 +13,7 @@ export interface Tool {
 
 interface Props {
   tool: Tool;
+  expanded: boolean;
 }
 
 export const ToolButton = (props: Props) => {
@@ -39,8 +40,12 @@ export const ToolButton = (props: Props) => {
   useEffect(() => {
     const { current: button } = ref;
 
+    if(!props.expanded) {
+      setShowProperties(false);
+    }
+
     const handleClickOutside = (e: MouseEvent) => {
-      if(button && !button.contains(e.target as Node)) {
+      if(button && !button.contains(e.target as Node) && !props.expanded) {
         setShowProperties(false);
       }
     }
@@ -50,13 +55,17 @@ export const ToolButton = (props: Props) => {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     }
-  }, []);
+  }, [props.expanded]);
 
   return (
-    <Container onClick={handleClick} ref={ref} $active={props.tool.active}>
-      <props.tool.icon />
-      {(showProperties && props.tool.properties) && <Properties properties={props.tool.properties}/>}
-      {props.tool.properties && <PropertiesIndicator />}
+    <Container onClick={handleClick} ref={ref} $active={props.tool.active} $expanded={props.expanded}>
+      <LabelContainer $expanded={props.expanded}>
+        <props.tool.icon />
+        {props.expanded && <Label>{props.tool.name}</Label>}
+      </LabelContainer>
+
+      {(showProperties && props.tool.properties) && <Properties properties={props.tool.properties} expanded={props.expanded} />}
+      {props.tool.properties && <PropertiesIndicator $expanded={props.expanded} />}
     </Container>
   )
 }

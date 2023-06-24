@@ -1,4 +1,4 @@
-import { MouseEvent, useEffect, useRef } from 'react';
+import { MouseEvent, RefObject, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { IoReload } from 'react-icons/io5';
 import { AiOutlineLock } from 'react-icons/ai';
@@ -10,15 +10,18 @@ import { Properties } from '../../pages/editor/controller';
 import { Field, Form, FormRef } from '../../../shared/components/form';
 import { Extras } from './extras';
 import { Button, ButtonText, ButtonWrapper, Container, Gutter, PropertiesWrapper } from './styles';
+import { EditorRef } from '../workspace/editor';
 
 interface Props {
   disableSubmit?: boolean;
   onSubmit: (data: Properties, pluginsData: object[]) => void;
   onCancel?: () => void;
+  editorRef: RefObject<EditorRef>;
 }
 
 const Properties = (props: Props) => {
-  const { image, models, samplers, properties, pluginProperties, loading, progress } = useSelector((state: RootState) => state.properties);
+  const { models, samplers, properties, pluginProperties, loading, progress } = useSelector((state: RootState) => state.properties);
+
   const formRef = useRef<FormRef<Properties>>(null);
   const dispatch = useDispatch();
   const sdService = useSdService();
@@ -31,6 +34,10 @@ const Properties = (props: Props) => {
     const mouseMove = (e: globalThis.MouseEvent) => {
       const newWidth = width + (x - e.clientX);
       element.parentElement!.style.width = `${newWidth}px`;
+      
+      if(props.editorRef.current) {
+        props.editorRef.current.resizeCanvas();
+      }
     };
 
     const mouseUp = () => {
@@ -63,8 +70,7 @@ const Properties = (props: Props) => {
         const match = key.match(/(.*)\[(\d+)\]/);
   
         if (match) {
-          const key = match[1];
-          const index = match[2];
+          const [, key, index] = match;
   
           obj[key] = obj[key] || [];
           obj[key][index] = obj[key][index] || {};
@@ -279,7 +285,7 @@ const Properties = (props: Props) => {
       </PropertiesWrapper>
 
       <ButtonWrapper>
-        <Button onClick={handleSubmit} disabled={loading || !image} $progress={progress.current / progress.total * 100}>
+        <Button onClick={handleSubmit} disabled={loading} $progress={progress.current / progress.total * 100}>
           <ButtonText>GENERATE</ButtonText>
         </Button>
       </ButtonWrapper>

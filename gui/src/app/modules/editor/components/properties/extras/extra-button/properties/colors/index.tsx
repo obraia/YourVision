@@ -36,7 +36,7 @@ const Colors = (props: Props) => {
       <Color
         key={index}
         $color={color}
-        $selected={color === value}
+        $selected={color.toLowerCase() === value.toLowerCase()}
         onClick={() => handleChange(color)}
       />
     );

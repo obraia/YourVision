@@ -43,9 +43,25 @@ const ImageInput: React.FC<Props> = (props) => {
 
       image.addEventListener('drop', (e) => {
         e.preventDefault()
+
+        const { onChange } = props.properties;
         
         if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]) {
-          image.classList.remove('dragover')
+          image.classList.remove('dragover');
+
+          const reader = new FileReader();
+
+          reader.onload = (e) => {
+            if (e.target?.result) {
+              image.style.backgroundImage = `url(${e.target.result})`;
+
+              if (onChange  && input.name) {
+                onChange({ name: input.name, value: e.target.result.toString() });
+              }
+            }
+          }
+
+          reader.readAsDataURL(e.dataTransfer.files[0]);
         }
       });
 

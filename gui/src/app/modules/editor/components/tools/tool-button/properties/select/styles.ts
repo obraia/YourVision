@@ -1,34 +1,23 @@
 import styled from 'styled-components';
 import { lighten, transparentize } from 'polished';
-import { Scroll } from '../../../layout/scroll';
+import { Scroll } from '../../../../../../shared/components/layout/scroll';
 
-export const Container = styled.div<{ width: string }>`
-  width: ${(props) => props.width};
-  height: min-content;
+export const Container = styled.div`
+  width: 100%;
   display: flex;
-  position: relative;
   flex-direction: column;
-  padding-inline: 5px;
   gap: 5px;
 `;
 
 export const Label = styled.label`
-  width: fit-content;
-  display: flex;
-  gap: 5px;
-  font-size: 14px;
-  font-weight: bold;
+  width: 100%;
+  height: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: left;
   color: ${({ theme }) => theme.colors.textBackground};
 `;
 
-export const Legend = styled.span`
-  width: fit-content;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 12px;
-  color: ${({ theme }) => theme.colors.error};
-`;
 
 export const InputWrapper = styled.div`
   width: 100%;
@@ -39,13 +28,13 @@ export const InputWrapper = styled.div`
 
 export const Input = styled.input<{ error?: boolean }>`
   width: 100%;
-  height: 35px;
+  height: 30px;
   border: 0;
   padding-left: 10px;
   padding-right: 35px;
-  font-size: 14px;
+  font-size: 12px;
   border: 1px solid ${({ theme }) => transparentize(0.8, theme.colors.textBackground)};
-  border-radius: ${({ theme }) => theme.metrics.radius};
+  border-radius: 5px;
   background-color: ${({ theme }) => lighten(0.12, theme.colors.background)};
   color: ${({ theme }) => theme.colors.textBackground};
   cursor: pointer;
@@ -82,7 +71,7 @@ export const Arrow = styled.div`
   }
 `;
 
-export const OptionsList = styled.ul`
+export const OptionsList = styled(Scroll)`
   max-height: 260px;
   display: none;
   position: absolute;
@@ -91,25 +80,16 @@ export const OptionsList = styled.ul`
   gap: 5px;
   padding: 5px;
   list-style: none;
+  border-radius: 5px;
   background-color: ${({ theme }) => lighten(0.1, theme.colors.background)};
-  border-radius: 10px;
-  box-shadow: 0px 0px 10px #00000050;
+  box-shadow: 0px 0px 10px #00000030;
+  overflow-y: auto;
   transition: opacity 0.2s ease-in-out;
 
   &.active {
     display: flex;
     z-index: 999;
   }
-
-  &.empty {
-    gap: 0;
-  }
-`;
-
-export const OptionsScroll = styled(Scroll)`
-  overflow: auto;
-  border-radius: 5px;
-  background-color: ${({ theme }) => lighten(0.075, theme.colors.background)};
 `;
 
 export const Option = styled.li`
@@ -119,16 +99,19 @@ export const Option = styled.li`
   display: flex;
   align-items: center;
   padding: 0 10px;
+  font-size: 12px;
+  border-radius: ${({ theme }) => theme.metrics.inner_radius};
   color: ${({ theme }) => theme.colors.textBackground};
-  transition: background-color 0.2s ease-in-out;
+
   cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
 
   &:hover {
     background-color: ${({ theme }) => theme.colors.background};
   }
 
-  &.hidden {
-    display: none;
+  &:active {
+    background-color: ${({ theme }) => theme.colors.background};
   }
 `;
 
@@ -137,30 +120,4 @@ export const OptionLabel = styled.span`
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
-`;
-
-export const OptionSearch = styled.li.attrs({
-  onMouseDown: (e: any) => e.stopPropagation(),
-})`
-  width: 100%;
-  max-height: 35px;
-  min-height: 35px;
-  display: flex;
-  align-items: center;
-  padding: 0 10px;
-  border-radius: 5px;
-  background-color: ${({ theme }) => lighten(0.075, theme.colors.background)};
-`;
-
-export const OptionSearchInput = styled.input.attrs({
-  placeholder: 'Search...',
-  type: 'search',
-  onMouseDown: (e: any) => e.stopPropagation(),
-})`
-  width: 100%;
-  height: 100%;
-  font-size: 16px;
-  border: none;
-  color: ${({ theme }) => theme.colors.textBackground};
-  background-color: transparent;
 `;
