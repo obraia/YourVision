@@ -47,6 +47,14 @@
   <div align="center">
     <img src="docs/your-vision-plugins.gif" alt="preview" height="500px" />
   </div>
+
+  ## Some plugins are already available:
+
+  - [ControlNet](https://github.com/obraia/yv_controlnet_plugin)
+  - [CodeFormer Face Restoration](https://github.com/obraia/yv_codeformer_plugin)
+  - [GFPGAN Face Restoration](https://github.com/obraia/yv_gfpgan_plugin)
+  - [LoRA](https://github.com/obraia/yv_lora_plugin)
+
 </details>
 
 # Instalation
@@ -107,7 +115,7 @@ First, you will need python v3.10.6 and nodejs v18.16.0 with yarn.
 - [x] Generated images gallery
 - [ ] Creation of shortcuts for the interface
 - [ ] Support for predefined generation filters
-- [ ] Create layer system
+- [x] Create layer system
 - [x] Plugins support
 
 # Credits
